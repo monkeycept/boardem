@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Layer, Stage } from 'react-konva'
 import Konva from 'konva'
 import { FurnitureItem, Track } from '../../types'
+import type { PoseMap } from '../../lib/physics'
 import { ROOM_H, ROOM_W } from '../../lib/room'
 import RoomBackdrop, { RoomVignette } from './RoomBackdrop'
 import FurnitureNode from './FurnitureNode'
@@ -20,6 +21,11 @@ interface Props {
   onMove?: (id: string, x: number, y: number) => void
   onActivate?: (item: FurnitureItem) => void
   onFloorTap?: (x: number, y: number) => void
+  /** Live poses from a running physics simulation. */
+  poses?: PoseMap | null
+  /** Freeze dragging while physics is moving things. */
+  locked?: boolean
+  shaking?: boolean
 }
 
 /** Renders a loft at the largest size that fits its container. */
@@ -36,6 +42,9 @@ export default function RoomStage({
   onMove,
   onActivate,
   onFloorTap,
+  poses = null,
+  locked = false,
+  shaking = false,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [box, setBox] = useState({ w: 0, h: 0 })
@@ -68,7 +77,7 @@ export default function RoomStage({
   return (
     <div ref={wrapRef} className="w-full h-full flex items-center justify-center overflow-hidden">
       {scale > 0 && (
-        <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 ring-1 ring-white/10">
+        <div className={`rounded-2xl overflow-hidden shadow-2xl shadow-black/60 ring-1 ring-white/10 ${shaking ? 'animate-shake' : ''}`}>
           <Stage
             width={Math.floor(ROOM_W * scale)}
             height={Math.floor(ROOM_H * scale)}
@@ -83,8 +92,10 @@ export default function RoomStage({
                 <FurnitureNode
                   key={item.id}
                   item={item}
+                  pose={poses?.[item.id]}
                   track={item.trackId ? tracks.find(t => t.id === item.trackId) : undefined}
                   editable={editable}
+                  locked={locked}
                   selected={selectedId === item.id}
                   isPlaying={item.type === 'album' && item.trackId === playingTrackId}
                   musicOn={musicOn}

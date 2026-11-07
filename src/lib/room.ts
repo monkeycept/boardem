@@ -1,27 +1,50 @@
 import { FurnitureType } from '../types'
+import { wada as w } from '../theme/wada'
 
 /** Every loft is laid out in the same logical room, then scaled to fit the screen. */
 export const ROOM_W = 460
 export const ROOM_H = 380
 export const WALL_H = 150
 
+/** Mix two hex colours (t = 0 → a, 1 → b). */
+export const mix = (a: string, b: string, t: number) => {
+  const pa = parseInt(a.slice(1), 16)
+  const pb = parseInt(b.slice(1), 16)
+  const ch = (shift: number) => Math.round(((pa >> shift) & 255) * (1 - t) + ((pb >> shift) & 255) * t)
+  return `#${[16, 8, 0].map(s => ch(s).toString(16).padStart(2, '0')).join('')}`
+}
+
 export interface Wallpaper {
   id: string
   label: string
+  /** Number of the combination in Wada's dictionary. */
+  combo: number
   top: string
   bottom: string
   accent: string
 }
 
+/** Each wall is one of Wada's three-colour combinations: dark at the ceiling, mid near the floor, light trim. */
+const wall = (id: string, label: string, combo: number, dark: string, mid: string, light: string): Wallpaper => ({
+  id,
+  label,
+  combo,
+  top: dark,
+  bottom: mix(dark, mid, 0.55),
+  accent: light,
+})
+
 export const WALLPAPERS: Wallpaper[] = [
-  { id: 'dark-purple', label: 'Midnight', top: '#3b1d6e', bottom: '#5b21b6', accent: '#c4b5fd' },
-  { id: 'deep-blue', label: 'Deep Blue', top: '#0b1e4a', bottom: '#1e3a8a', accent: '#93c5fd' },
-  { id: 'dark-neon', label: 'Neon', top: '#0a0f1f', bottom: '#1a1033', accent: '#22d3ee' },
-  { id: 'warm-brown', label: 'Cabin', top: '#3d2412', bottom: '#6b3f1d', accent: '#fbbf24' },
-  { id: 'forest-green', label: 'Forest', top: '#0c2e25', bottom: '#14532d', accent: '#6ee7b7' },
-  { id: 'light-gray', label: 'Gallery', top: '#334155', bottom: '#475569', accent: '#e2e8f0' },
-  { id: 'pastel-pink', label: 'Sunset', top: '#4c0d2e', bottom: '#9d174d', accent: '#f9a8d4' },
-  { id: 'ocean-blue', label: 'Ocean', top: '#06283d', bottom: '#0e7490', accent: '#67e8f9' },
+  wall('dark-neon', 'Night Teal', 155, w.deepIndigo, w.benzolGreen, w.jasperRed),
+  wall('dark-purple', 'Plum Marigold', 170, w.redViolet, w.rosolancPurple, w.orangeYellow),
+  wall('deep-blue', 'Lapis', 126, w.deepLyonsBlue, w.yellowOcher, w.ivoryBuff),
+  wall('harbor-dusk', 'Harbor Dusk', 141, w.darkTyrianBlue, w.orange, w.yellowGreen),
+  wall('forest-green', 'Lantern', 149, w.deepSlateGreen, w.orange, w.oliveOcher),
+  wall('twilight', 'Twilight', 125, w.violetBlue, w.cerulianBlue, w.fawn),
+  wall('warm-brown', 'Tobacco', 192, w.vandykeBrown, w.plumbeous, w.creamYellow),
+  wall('ocean-blue', 'Fjord', 167, w.vandarPoelsBlue, w.ecru, w.paleKingsBlue),
+  { id: 'pastel-pink', label: 'Sakura', combo: 176, top: w.hermosaPink, bottom: mix(w.hermosaPink, w.seashellPink, 0.6), accent: w.calamineBlue },
+  { id: 'light-gray', label: 'Garden', combo: 135, top: w.salviaBlue, bottom: mix(w.salviaBlue, w.sulpherYellow, 0.55), accent: w.cossackGreen },
 ]
 
 export interface Floor {
@@ -33,14 +56,14 @@ export interface Floor {
 }
 
 export const FLOORS: Floor[] = [
-  { id: 'wood', label: 'Oak', base: '#5c3d22', line: '#3f2915', pattern: 'planks' },
-  { id: 'marble', label: 'Marble', base: '#cbd5e1', line: '#94a3b8', pattern: 'tiles' },
-  { id: 'neon-grid', label: 'Neon Grid', base: '#0b0b1a', line: '#d946ef', pattern: 'grid' },
-  { id: 'carpet', label: 'Carpet', base: '#1e3a5f', line: '#1e3a5f', pattern: 'plain' },
-  { id: 'moss', label: 'Moss', base: '#2f4f2f', line: '#3f6b3f', pattern: 'plain' },
-  { id: 'retro-tile', label: 'Retro', base: '#f5d0c5', line: '#be185d', pattern: 'checker' },
-  { id: 'concrete', label: 'Concrete', base: '#3f3f46', line: '#52525b', pattern: 'tiles' },
-  { id: 'tatami', label: 'Tatami', base: '#a3a35a', line: '#6b6b2e', pattern: 'mats' },
+  { id: 'wood', label: 'Umber Oak', base: w.paleRawUmber, line: w.vandykeBrown, pattern: 'planks' },
+  { id: 'marble', label: 'Stone', base: w.neutralGray, line: w.plumbeous, pattern: 'tiles' },
+  { id: 'neon-grid', label: 'Indigo Grid', base: w.deepIndigo, line: w.benzolGreen, pattern: 'grid' },
+  { id: 'carpet', label: 'Lyons Carpet', base: w.deepLyonsBlue, line: w.violetBlue, pattern: 'plain' },
+  { id: 'moss', label: 'Moss', base: w.lincolnGreen, line: w.deepGrayishOlive, pattern: 'plain' },
+  { id: 'retro-tile', label: 'Checker', base: w.seashellPink, line: w.rosolancPurple, pattern: 'checker' },
+  { id: 'concrete', label: 'Slate', base: w.slateColor, line: w.darkMediciBlue, pattern: 'tiles' },
+  { id: 'tatami', label: 'Tatami', base: w.oliveYellow, line: w.deepGrayishOlive, pattern: 'mats' },
 ]
 
 export const getWallpaper = (id: string) => WALLPAPERS.find(w => w.id === id) ?? WALLPAPERS[0]
@@ -84,7 +107,7 @@ export const getCatalogItem = (type: FurnitureType): CatalogItem =>
     zone: 'wall',
   }
 
-export const POSTER_COLORS = ['#22d3ee', '#a855f7', '#f472b6', '#facc15', '#34d399', '#fb923c']
+export const POSTER_COLORS = [w.jasperRed, w.benzolGreen, w.orangeYellow, w.cerulianBlue, w.rosolancPurple, w.yellowOcher, w.hermosaPink]
 
 export const clampToRoom = (x: number, y: number, w = 40, h = 40) => ({
   x: Math.min(ROOM_W - w / 2, Math.max(w / 2, x)),

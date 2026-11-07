@@ -1,15 +1,21 @@
 import { useEffect, useRef } from 'react'
-import { Circle, Ellipse, Group, Rect, Star, Text } from 'react-konva'
+import { ui, wada } from '../../theme/wada'
+import { Circle, Ellipse, Group, Image as KonvaImage, Rect, Star, Text } from 'react-konva'
 import Konva from 'konva'
 import { FurnitureItem, Track } from '../../types'
 import { ALBUM_SIZE, getCatalogItem, ROOM_H, ROOM_W } from '../../lib/room'
+import { FURNITURE_ART, useCanvasImage } from '../../lib/art'
 
 export const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'
 
 interface Props {
   item: FurnitureItem
+  /** Where physics currently has this item (overrides the saved position while moving). */
+  pose?: { x: number; y: number; rotation: number }
   track?: Track
   editable: boolean
+  /** Physics is settling: items can still be selected, just not dragged. */
+  locked?: boolean
   selected: boolean
   isPlaying: boolean
   musicOn: boolean
@@ -29,7 +35,7 @@ const shade = (hex: string, amount: number) => {
 
 function AlbumArt({ track, playing }: { track?: Track; playing: boolean }) {
   const s = ALBUM_SIZE
-  const [a, b] = track?.colors ?? ['#475569', '#94a3b8']
+  const [a, b] = track?.colors ?? [wada.plumbeous, wada.neutralGray]
   return (
     <Group>
       <Rect
@@ -41,13 +47,13 @@ function AlbumArt({ track, playing }: { track?: Track; playing: boolean }) {
         fillLinearGradientStartPoint={{ x: -s / 2, y: -s / 2 }}
         fillLinearGradientEndPoint={{ x: s / 2, y: s / 2 }}
         fillLinearGradientColorStops={[0, a, 1, b]}
-        stroke="#f8fafc"
+        stroke={wada.sulpherYellow}
         strokeWidth={2}
-        shadowColor={playing ? '#22d3ee' : '#000'}
+        shadowColor={playing ? ui.accent : '#000'}
         shadowBlur={playing ? 18 : 6}
         shadowOpacity={playing ? 0.9 : 0.4}
       />
-      <Circle x={8} y={-6} radius={14} fill="#0f172a" opacity={0.85} />
+      <Circle x={8} y={-6} radius={14} fill={ui.ground} opacity={0.85} />
       <Circle x={8} y={-6} radius={4} fill={b} />
       <Text
         x={-s / 2 + 4}
@@ -68,7 +74,7 @@ function AlbumArt({ track, playing }: { track?: Track; playing: boolean }) {
 function Poster({ w, h, color }: { w: number; h: number; color: string }) {
   return (
     <Group>
-      <Rect x={-w / 2} y={-h / 2} width={w} height={h} fill="#f8fafc" cornerRadius={2} shadowColor="#000" shadowBlur={6} shadowOpacity={0.4} />
+      <Rect x={-w / 2} y={-h / 2} width={w} height={h} fill={wada.sulpherYellow} cornerRadius={2} shadowColor="#000" shadowBlur={6} shadowOpacity={0.4} />
       <Rect
         x={-w / 2 + 3}
         y={-h / 2 + 3}
@@ -78,7 +84,7 @@ function Poster({ w, h, color }: { w: number; h: number; color: string }) {
         fillLinearGradientEndPoint={{ x: 0, y: h / 2 }}
         fillLinearGradientColorStops={[0, shade(color, -90), 1, color]}
       />
-      <Star x={0} y={-6} numPoints={5} innerRadius={5} outerRadius={11} fill="#fef9c3" opacity={0.9} />
+      <Star x={0} y={-6} numPoints={5} innerRadius={5} outerRadius={11} fill={wada.sulpherYellow} opacity={0.95} />
       <Circle x={-9} y={14} radius={3} fill="#ffffff" opacity={0.7} />
       <Circle x={10} y={18} radius={2} fill="#ffffff" opacity={0.6} />
     </Group>
@@ -95,12 +101,15 @@ function Rug({ w, h, color }: { w: number; h: number; color: string }) {
   )
 }
 
-export default function FurnitureNode({ item, track, editable, selected, isPlaying, musicOn, stageScale, onSelect, onMove, onActivate }: Props) {
+export default function FurnitureNode({ item, pose, track, editable, locked = false, selected, isPlaying, musicOn, stageScale, onSelect, onMove, onActivate }: Props) {
   const cat = getCatalogItem(item.type)
   const groupRef = useRef<Konva.Group>(null)
   const pulseRef = useRef<Konva.Group>(null)
   const w = item.type === 'album' ? ALBUM_SIZE : cat.w
   const h = item.type === 'album' ? ALBUM_SIZE : cat.h
+  const artImg = useCanvasImage(FURNITURE_ART[item.type])
+  // The artwork is square; fit it to the item's footprint, sitting on its base line.
+  const artSize = Math.max(w, h) * 1.05
 
   // Speakers bounce to the beat while music plays.
   useEffect(() => {
@@ -127,12 +136,12 @@ export default function FurnitureNode({ item, track, editable, selected, isPlayi
   return (
     <Group
       ref={groupRef}
-      x={item.x}
-      y={item.y}
-      rotation={item.rotation}
+      x={pose?.x ?? item.x}
+      y={pose?.y ?? item.y}
+      rotation={pose?.rotation ?? item.rotation}
       scaleX={item.scale}
       scaleY={item.scale}
-      draggable={editable}
+      draggable={editable && !locked}
       onClick={handleTap}
       onTap={handleTap}
       onDblClick={() => item.type === 'album' && onActivate?.(item)}
@@ -158,9 +167,11 @@ export default function FurnitureNode({ item, track, editable, selected, isPlayi
         {item.type === 'album' ? (
           <AlbumArt track={track} playing={isPlaying} />
         ) : item.type === 'poster' ? (
-          <Poster w={w} h={h} color={item.color ?? '#22d3ee'} />
+          <Poster w={w} h={h} color={item.color ?? wada.jasperRed} />
         ) : item.type === 'rug' ? (
-          <Rug w={w} h={h} color={item.color ?? '#a855f7'} />
+          <Rug w={w} h={h} color={item.color ?? wada.benzolGreen} />
+        ) : artImg ? (
+          <KonvaImage image={artImg} x={-artSize / 2} y={h / 2 - artSize} width={artSize} height={artSize} listening={false} />
         ) : (
           // Emoji glyphs are a bit wider than their font size; never let Konva wrap them onto a hidden line.
           <Text
@@ -188,7 +199,7 @@ export default function FurnitureNode({ item, track, editable, selected, isPlayi
           y={-h / 2 - 6}
           width={w + 12}
           height={h + 12}
-          stroke="#22d3ee"
+          stroke={ui.accentLight}
           strokeWidth={2 / item.scale}
           dash={[6, 4]}
           cornerRadius={8}

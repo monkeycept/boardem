@@ -310,6 +310,50 @@ export function stopFile() {
 }
 
 // ---------------------------------------------------------------------------
+// Physics sounds
+// ---------------------------------------------------------------------------
+
+let lastThump = 0
+
+/** A soft wooden thump when furniture lands. strength is 0–1. */
+export function thump(strength: number) {
+  const c = ctx
+  if (!c || !master || c.state !== 'running') return
+  const now = c.currentTime
+  if (now - lastThump < 0.04) return // several things landing at once shouldn't clip
+  lastThump = now
+  const gain = 0.05 + 0.25 * Math.min(1, strength)
+  const osc = c.createOscillator()
+  osc.frequency.setValueAtTime(95 + Math.random() * 30, now)
+  osc.frequency.exponentialRampToValueAtTime(45, now + 0.12)
+  const g = c.createGain()
+  env(g, now, 0.002, gain, 0.18)
+  osc.connect(g).connect(master)
+  osc.start(now)
+  osc.stop(now + 0.22)
+  noiseHit(c, master, now, 'lowpass', 900, gain * 0.5, 0.06)
+}
+
+/** A low rumble for turbulence. */
+export function rumble() {
+  const c = ctx
+  if (!c || !master || c.state !== 'running') return
+  const now = c.currentTime
+  const src = c.createBufferSource()
+  src.buffer = noise(c, 'brown')
+  const f = c.createBiquadFilter()
+  f.type = 'lowpass'
+  f.frequency.value = 140
+  const g = c.createGain()
+  g.gain.setValueAtTime(0.0001, now)
+  g.gain.linearRampToValueAtTime(0.5, now + 0.15)
+  g.gain.exponentialRampToValueAtTime(0.0001, now + 1.4)
+  src.connect(f).connect(g).connect(master)
+  src.start(now)
+  src.stop(now + 1.5)
+}
+
+// ---------------------------------------------------------------------------
 // Cabin hum
 // ---------------------------------------------------------------------------
 

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import Avatar from '../common/Avatar'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, Paintbrush, Save, Send } from 'lucide-react'
+import { Check, Paintbrush, Save, Send, Waves } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useLoftStore } from '../../stores/loftStore'
 import { allTracks, findTrack, useAudioStore } from '../../stores/audioStore'
@@ -8,6 +9,7 @@ import { useFlightStore } from '../../stores/flightStore'
 import { useUserStore } from '../../stores/userStore'
 import { useMyMusic } from '../../hooks/useMyMusic'
 import { useRoomPresence } from '../../hooks/useRoomPresence'
+import { useRoomPhysics } from '../../hooks/useRoomPhysics'
 import { celebrate } from '../../lib/celebrate'
 import RoomStage from '../loft/RoomStage'
 import DecorateSheet from '../loft/DecorateSheet'
@@ -35,6 +37,44 @@ export default function LoftBuilderScreen() {
   const selected = loft.furniture.find(f => f.id === loft.selectedId)
   const playingId = playing ? currentTrackId : null
   const tracks = allTracks(uploads)
+
+  const applyPoses = loft.applyPoses
+  const physics = useRoomPhysics({ getItems: () => useLoftStore.getState().furniture, onSettle: applyPoses })
+
+  // New furniture falls in from above and lands with a thump.
+  const knownIds = useRef(new Set(loft.furniture.map(f => f.id)))
+  useEffect(() => {
+    const added = loft.furniture.filter(f => !knownIds.current.has(f.id)).map(f => f.id)
+    knownIds.current = new Set(loft.furniture.map(f => f.id))
+    if (added.length) physics.drop(added)
+  }, [loft.furniture, physics])
+
+  const shakeRoom = () => {
+    const before = useLoftStore.getState().furniture
+    loft.select(null)
+    physics.turbulence(1)
+    // Physics may knock things over — offer a way back.
+    window.setTimeout(() => {
+      toast(
+        t => (
+          <span className="flex items-center gap-3">
+            Turbulence shook your loft
+            <button
+              className="text-sea-300 font-semibold"
+              onClick={() => {
+                physics.reset()
+                useLoftStore.getState().replaceFurniture(before)
+                toast.dismiss(t.id)
+              }}
+            >
+              Undo
+            </button>
+          </span>
+        ),
+        { icon: '🌀', duration: 6000 },
+      )
+    }, 2500)
+  }
 
   // Everything autosaves; this just keeps the "saved Xs ago" label fresh.
   useEffect(() => {
@@ -79,11 +119,11 @@ export default function LoftBuilderScreen() {
 
   return (
     <div className="relative w-full h-full flex flex-col">
-      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-700/50">
+      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-ink-700/50">
         <div className="min-w-0">
-          <h2 className="font-bold text-cyan-300 leading-tight">My Loft</h2>
-          <p className="text-xs text-slate-400 flex items-center gap-1 whitespace-nowrap overflow-hidden">
-            {loft.furniture.length} items · <Check className="w-3 h-3 text-emerald-400" /> {loft.savedAt ? timeAgo(loft.savedAt) : 'autosaving'}
+          <h2 className="font-bold text-sea-300 leading-tight">My Loft</h2>
+          <p className="text-xs text-ink-400 flex items-center gap-1 whitespace-nowrap overflow-hidden">
+            {loft.furniture.length} items · <Check className="w-3 h-3 text-jade-400" /> {loft.savedAt ? timeAgo(loft.savedAt) : 'autosaving'}
           </p>
         </div>
         <div className="flex gap-2">
@@ -102,10 +142,10 @@ export default function LoftBuilderScreen() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="px-4 py-2 bg-cyan-500/10 border-b border-cyan-500/20 flex items-center gap-2"
+            className="px-4 py-2 bg-sea-500/10 border-b border-sea-500/20 flex items-center gap-2"
           >
-            <span className="text-xs text-cyan-200 whitespace-nowrap">
-              {visitors.map(v => v.emoji).join('')} {visitors.length === 1 ? `${visitors[0].name} is visiting` : `${visitors.length} visitors`}
+            <span className="text-xs text-sea-200 whitespace-nowrap">
+              {visitors.map(v => <Avatar key={v.id} emoji={v.emoji} size={20} className="-mr-1 align-middle" />)} {visitors.length === 1 ? `${visitors[0].name} is visiting` : `${visitors.length} visitors`}
             </span>
             <input
               value={reply}
@@ -115,7 +155,7 @@ export default function LoftBuilderScreen() {
               aria-label="Say something to your visitors"
               className="input-base py-1 text-sm flex-1 min-w-0"
             />
-            <button onClick={sendReply} className="p-1.5 rounded-lg bg-cyan-400 text-slate-950" aria-label="Send">
+            <button onClick={sendReply} className="p-1.5 rounded-lg bg-sea-400 text-ink-950" aria-label="Send">
               <Send className="w-4 h-4" />
             </button>
           </motion.div>
@@ -133,9 +173,24 @@ export default function LoftBuilderScreen() {
           selectedId={loft.selectedId}
           avatars={visitors}
           onSelect={loft.select}
-          onMove={loft.moveItem}
+          onMove={(id, x, y) => {
+            loft.moveItem(id, x, y)
+            physics.nudge(id)
+          }}
           onActivate={item => item.trackId && toggleTrack(item.trackId)}
+          poses={physics.poses}
+          locked={physics.running}
+          shaking={physics.shaking}
         />
+
+        <button
+          onClick={shakeRoom}
+          disabled={physics.running}
+          className="absolute top-5 right-5 z-10 flex items-center gap-1.5 rounded-full bg-ink-950/75 backdrop-blur px-3 py-1.5 text-xs font-semibold text-jasper-300 ring-1 ring-jasper-400/40 hover:bg-ink-900 disabled:opacity-50"
+          aria-label="Shake the loft with turbulence"
+        >
+          <Waves className="w-4 h-4" /> Turbulence
+        </button>
 
         <AnimatePresence>
           {selected ? (
@@ -151,11 +206,11 @@ export default function LoftBuilderScreen() {
               onTogglePlay={() => selected.trackId && toggleTrack(selected.trackId)}
             />
           ) : loft.furniture.length === 0 ? (
-            <motion.p key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-3 inset-x-0 text-center text-sm text-slate-300">
-              Your loft is empty — tap <span className="text-cyan-300 font-semibold">Decorate</span> to start
+            <motion.p key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-3 inset-x-0 text-center text-sm text-ink-300">
+              Your loft is empty — tap <span className="text-sea-300 font-semibold">Decorate</span> to start
             </motion.p>
           ) : (
-            <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-3 inset-x-0 px-4 text-center text-xs text-slate-400 pointer-events-none truncate">
+            <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-3 inset-x-0 px-4 text-center text-xs text-ink-400 pointer-events-none truncate">
               Drag to move · tap an item to rotate, resize or remove · double-tap an album to play
             </motion.p>
           )}

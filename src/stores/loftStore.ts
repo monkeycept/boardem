@@ -26,6 +26,9 @@ interface LoftState {
   setFlooring: (id: string) => void
   setNowPlaying: (np: NowPlaying | null) => void
   markSaved: () => void
+  /** Save where physics left things (floor items only; wall art always swings back). */
+  applyPoses: (poses: Record<string, { x: number; y: number; rotation: number }>) => void
+  replaceFurniture: (items: FurnitureItem[]) => void
 }
 
 const STARTER: FurnitureItem[] = [
@@ -92,6 +95,15 @@ export const useLoftStore = create<LoftState>()(
       setFlooring: flooring => set({ flooring }),
       setNowPlaying: nowPlaying => set({ nowPlaying }),
       markSaved: () => set({ savedAt: Date.now() }),
+      applyPoses: poses =>
+        set({
+          furniture: get().furniture.map(f => {
+            const p = poses[f.id]
+            if (!p || getCatalogItem(f.type).zone === 'wall' || f.type === 'album') return f
+            return { ...f, x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10, rotation: Math.round(p.rotation) }
+          }),
+        }),
+      replaceFurniture: furniture => set({ furniture, selectedId: null }),
     }),
     {
       name: 'skyloft-loft',

@@ -27,16 +27,16 @@ export default function BottomNav() {
               onClick={() => setPage(item.id)}
               aria-current={active ? 'page' : undefined}
               className={`relative flex flex-col items-center gap-0.5 py-2 rounded-xl transition-colors ${
-                active ? 'text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                active ? 'text-sea-300' : 'text-ink-400 hover:text-ink-200'
               }`}
             >
               {active && (
-                <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-xl bg-cyan-400/15 border border-cyan-400/30" transition={{ type: 'spring', damping: 26, stiffness: 320 }} />
+                <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-xl bg-sea-400/15 border border-sea-400/30" transition={{ type: 'spring', damping: 26, stiffness: 320 }} />
               )}
               <span className="relative">
                 <item.icon className="w-5 h-5" />
                 {item.id === 'chat' && unread > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-jasper-500 text-white text-[10px] font-bold flex items-center justify-center">
                     {unread > 9 ? '9+' : unread}
                   </span>
                 )}

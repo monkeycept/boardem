@@ -13,7 +13,8 @@ Board your flight, build a tiny loft, put some music on, and drop into the lofts
 | | |
 |---|---|
 | 🎫 **Board** | Scan the barcode on a real boarding pass (PDF417 / Aztec / QR, IATA BCBP format), type your flight number, or tap **Use Demo Flight**. Pick a name and avatar. |
-| 🛋️ **Build your loft** | Drag-and-drop room editor: 12 furniture pieces, 8 wallpapers, 8 floors, album posters on the wall. Tap an item to rotate, resize, bring to front or remove. Works with touch and mouse (Delete / R / + / − on a keyboard). Autosaves. |
+| 🛋️ **Build your loft** | Drag-and-drop room editor with 3D-style furniture, 10 wallpapers and 8 floors drawn from Sanzo Wada's colour combinations, and album posters on the wall. Tap an item to rotate, resize, bring to front or remove. Works with touch and mouse (Delete / R / + / − on a keyboard). Autosaves. |
+| 🌀 **Real physics** | Powered by the Bullet engine: new furniture drops in and lands with a thump, placing a piece on top of another shoves it aside, wall art swings on its nail, and the **Turbulence** button shakes the whole loft (with Undo). Visitors get the occasional bit of light turbulence too. |
 | 🎵 **Music** | 8 built-in tracks (synthwave, chillhop, folk, ambient, nature…) composed live in the browser, plus your own MP3s. Whatever plays in your loft is what visitors hear. Tap an album poster to play it. |
 | 🚪 **Visit neighbours** | See every passenger on your flight, then walk into their loft: the exact layout they built, their music playing, other visitors wandering around, and speech-bubble chat. Tap the floor to walk. |
 | 💬 **Cabin chat** | A group chat for the whole flight, with unread badges. |
@@ -61,6 +62,9 @@ To turn on live mode in the deployed site, add the `VITE_FIREBASE_*` values as r
 | App | Vite 5, React 18, TypeScript (strict) |
 | Styling | Tailwind CSS, Framer Motion |
 | Room editor | Konva + react-konva |
+| Physics | Bullet, via ammo.js WebAssembly ([ammojs-typed](https://github.com/giniedp/ammojs-typed)) — loaded only when first needed (`src/lib/physics.ts`) |
+| Art | Microsoft Fluent Emoji 3D (MIT) |
+| Colour | Sanzo Wada, *A Dictionary of Color Combinations*, combination 155 for the app (`src/theme/`) |
 | State | Zustand (persisted to localStorage) |
 | Music | Web Audio API generative engine (`src/lib/audio.ts`) — no audio files shipped |
 | Boarding pass | html5-qrcode + IATA BCBP parser (`src/lib/boardingPass.ts`) |
@@ -94,6 +98,10 @@ flights/{flightNumber}/messages/{id}      text, sender, timestamp, loftId?
 A passenger shows as online if they've sent a heartbeat in the last 90 seconds. Starter security rules are in [`firestore.rules`](./firestore.rules).
 
 ---
+
+## Credits
+
+Furniture and avatar art: [Microsoft Fluent Emoji](https://github.com/microsoft/fluentui-emoji) (MIT). Colour values: [mattdesl/dictionary-of-colour-combinations](https://github.com/mattdesl/dictionary-of-colour-combinations) (MIT), from Sanzo Wada's *A Dictionary of Color Combinations*. Physics: [Bullet](https://github.com/bulletphysics/bullet3) / [ammo.js](https://github.com/kripken/ammo.js) (zlib). See [ASSETS.md](./ASSETS.md) for more free sources.
 
 ## Known limits
 

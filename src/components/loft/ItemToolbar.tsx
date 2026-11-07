@@ -20,7 +20,7 @@ const Btn = ({ label, onClick, children, danger }: { label: string; onClick: () 
     aria-label={label}
     title={label}
     className={`flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-[10px] font-medium transition-colors ${
-      danger ? 'text-rose-300 hover:bg-rose-500/20' : 'text-slate-200 hover:bg-slate-700/70'
+      danger ? 'text-jasper-300 hover:bg-jasper-500/20' : 'text-ink-200 hover:bg-ink-700/70'
     }`}
   >
     {children}
@@ -37,10 +37,10 @@ export default function ItemToolbar({ item, trackTitle, isPlaying, onRotate, onR
       exit={{ y: 20, opacity: 0 }}
       className="absolute bottom-1 inset-x-0 mx-auto w-fit max-w-[calc(100%-1rem)] glass-dark rounded-2xl px-2 py-1.5 flex items-center gap-0.5 z-20 shadow-xl shadow-black/50"
     >
-      <span className="hidden sm:block text-xs text-slate-400 px-2 max-w-[8rem] truncate">{item.type === 'album' ? trackTitle : cat.label}</span>
+      <span className="hidden sm:block text-xs text-ink-400 px-2 max-w-[8rem] truncate">{item.type === 'album' ? trackTitle : cat.label}</span>
       {item.type === 'album' && (
         <Btn label={isPlaying ? 'Pause' : 'Play'} onClick={onTogglePlay}>
-          {isPlaying ? <Pause className="w-4 h-4 text-cyan-300" /> : <Play className="w-4 h-4 text-cyan-300" />}
+          {isPlaying ? <Pause className="w-4 h-4 text-sea-300" /> : <Play className="w-4 h-4 text-sea-300" />}
         </Btn>
       )}
       <Btn label="Rotate" onClick={onRotate}>

@@ -3,11 +3,12 @@ import { Track } from '../types'
 import { PRESET_TRACKS, getPresetTrack } from '../lib/tracks'
 import { playFile, playRecipe, stopFile, stopRecipe, unlockAudio } from '../lib/audio'
 import { uid } from '../lib/ids'
+import { wada } from '../theme/wada'
 
 const UPLOAD_COLORS: [string, string][] = [
-  ['#0891b2', '#f0abfc'],
-  ['#4338ca', '#fda4af'],
-  ['#15803d', '#fde047'],
+  [wada.darkTyrianBlue, wada.orange],
+  [wada.violetBlue, wada.cerulianBlue],
+  [wada.cossackGreen, wada.sulpherYellow],
 ]
 
 interface AudioState {

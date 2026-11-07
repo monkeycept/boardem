@@ -57,9 +57,9 @@ export default function App() {
         toastOptions={{
           duration: 2200,
           style: {
-            background: 'rgba(15, 23, 42, 0.92)',
-            color: '#e2e8f0',
-            border: '1px solid rgba(34, 211, 238, 0.25)',
+            background: 'rgba(5, 18, 48, 0.94)', // Deep Indigo
+            color: '#f3f7fe',
+            border: '1px solid rgba(0, 151, 141, 0.45)', // Benzol Green
             backdropFilter: 'blur(12px)',
             fontSize: '14px',
           },

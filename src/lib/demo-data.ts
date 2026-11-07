@@ -1,5 +1,6 @@
 import { ChatMessage, FurnitureItem, FurnitureType, Loft, Passenger } from '../types'
 import { getPresetTrack } from './tracks'
+import { wada } from '../theme/wada'
 
 type Spec = { type: FurnitureType; x: number; y: number; rotation?: number; scale?: number; color?: string; trackId?: string }
 
@@ -44,8 +45,8 @@ export const DEMO_PROFILES: DemoProfile[] = [
     trackId: 'midnight-code',
     furniture: [
       { type: 'album', x: 90, y: 70, trackId: 'midnight-code' },
-      { type: 'poster', x: 380, y: 72, color: '#22d3ee' },
-      { type: 'rug', x: 230, y: 300, scale: 1.3, color: '#d946ef' },
+      { type: 'poster', x: 380, y: 72, color: wada.benzolGreen },
+      { type: 'rug', x: 230, y: 300, scale: 1.3, color: wada.jasperRed },
       { type: 'desk', x: 120, y: 220, scale: 1.2 },
       { type: 'tv', x: 200, y: 205 },
       { type: 'lamp', x: 60, y: 200 },
@@ -71,7 +72,7 @@ export const DEMO_PROFILES: DemoProfile[] = [
       { type: 'album', x: 230, y: 70, trackId: 'autumn-breeze' },
       { type: 'shelf', x: 60, y: 210, scale: 1.2 },
       { type: 'shelf', x: 400, y: 210, scale: 1.2 },
-      { type: 'rug', x: 230, y: 300, scale: 1.4, color: '#b45309' },
+      { type: 'rug', x: 230, y: 300, scale: 1.4, color: wada.rawSienna },
       { type: 'couch', x: 230, y: 300, scale: 1.1 },
       { type: 'lamp', x: 140, y: 230 },
       { type: 'plant', x: 330, y: 230 },
@@ -92,7 +93,7 @@ export const DEMO_PROFILES: DemoProfile[] = [
     trackId: 'ambient-spaces',
     furniture: [
       { type: 'painting', x: 150, y: 75, scale: 1.3 },
-      { type: 'poster', x: 320, y: 75, color: '#f472b6' },
+      { type: 'poster', x: 320, y: 75, color: wada.hermosaPink },
       { type: 'album', x: 410, y: 70, trackId: 'ambient-spaces' },
       { type: 'bed', x: 340, y: 300 },
       { type: 'lamp', x: 100, y: 240 },
@@ -111,14 +112,14 @@ export const DEMO_PROFILES: DemoProfile[] = [
     flooring: 'neon-grid',
     trackId: 'digital-dreams',
     furniture: [
-      { type: 'poster', x: 70, y: 72, color: '#a855f7' },
-      { type: 'poster', x: 140, y: 72, color: '#22d3ee' },
+      { type: 'poster', x: 70, y: 72, color: wada.rosolancPurple },
+      { type: 'poster', x: 140, y: 72, color: wada.cerulianBlue },
       { type: 'album', x: 380, y: 70, trackId: 'digital-dreams' },
       { type: 'desk', x: 230, y: 210, scale: 1.4 },
       { type: 'tv', x: 230, y: 185, scale: 0.9 },
       { type: 'speaker', x: 150, y: 215 },
       { type: 'speaker', x: 310, y: 215 },
-      { type: 'rug', x: 230, y: 310, scale: 1.2, color: '#22d3ee' },
+      { type: 'rug', x: 230, y: 310, scale: 1.2, color: wada.benzolGreen },
       { type: 'couch', x: 230, y: 320 },
     ],
     greeting: 'yo! gg for stopping by 🎮',
@@ -131,7 +132,7 @@ export const DEMO_PROFILES: DemoProfile[] = [
     seat: '17D',
     vibe: 'Vinyl producer loft',
     status: 'online',
-    wallpaper: 'deep-blue',
+    wallpaper: 'twilight',
     flooring: 'carpet',
     trackId: 'vinyl-groove',
     furniture: [
@@ -143,7 +144,7 @@ export const DEMO_PROFILES: DemoProfile[] = [
       { type: 'speaker', x: 110, y: 225, scale: 1.2 },
       { type: 'speaker', x: 290, y: 225, scale: 1.2 },
       { type: 'guitar', x: 400, y: 230 },
-      { type: 'rug', x: 200, y: 310, scale: 1.3, color: '#f59e0b' },
+      { type: 'rug', x: 200, y: 310, scale: 1.3, color: wada.orangeYellow },
       { type: 'plant', x: 420, y: 330 },
     ],
     greeting: 'welcome to the studio 🎧 tap any record on the wall',
@@ -183,8 +184,8 @@ export const DEMO_PROFILES: DemoProfile[] = [
     flooring: 'retro-tile',
     trackId: 'retro-vibes',
     furniture: [
-      { type: 'poster', x: 90, y: 72, color: '#facc15' },
-      { type: 'poster', x: 160, y: 72, color: '#f472b6' },
+      { type: 'poster', x: 90, y: 72, color: wada.orangeYellow },
+      { type: 'poster', x: 160, y: 72, color: wada.hermosaPink },
       { type: 'album', x: 360, y: 70, trackId: 'retro-vibes' },
       { type: 'couch', x: 150, y: 270, scale: 1.1 },
       { type: 'tv', x: 330, y: 215 },
@@ -202,17 +203,17 @@ export const DEMO_PROFILES: DemoProfile[] = [
     seat: '2A',
     vibe: "Traveller's map room",
     status: 'offline',
-    wallpaper: 'ocean-blue',
+    wallpaper: 'harbor-dusk',
     flooring: 'tatami',
     trackId: 'world-mix',
     furniture: [
       { type: 'painting', x: 100, y: 72 },
-      { type: 'poster', x: 190, y: 72, color: '#34d399' },
+      { type: 'poster', x: 190, y: 72, color: wada.cossackGreen },
       { type: 'album', x: 280, y: 70, trackId: 'world-mix' },
       { type: 'desk', x: 130, y: 220 },
       { type: 'shelf', x: 380, y: 210 },
       { type: 'guitar', x: 300, y: 230 },
-      { type: 'rug', x: 230, y: 310, scale: 1.3, color: '#0ea5e9' },
+      { type: 'rug', x: 230, y: 310, scale: 1.3, color: wada.cerulianBlue },
     ],
     greeting: '(Atlas is napping — but his door is open)',
     replies: ['zzz', '...', '😴'],

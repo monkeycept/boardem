@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Avatar from '../common/Avatar'
 import { motion } from 'framer-motion'
 import { LogOut, MessageCircle, Music2, Paintbrush, Plane, Users } from 'lucide-react'
 import { useFlightStore } from '../../stores/flightStore'
@@ -34,9 +35,9 @@ export default function HomeScreen() {
   return (
     <div className="p-4 space-y-4">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="text-center pt-2">
-        <p className="text-5xl mb-2">{avatar}</p>
-        <h2 className="text-2xl font-bold text-slate-50">Welcome aboard, {name || 'traveller'}</h2>
-        <p className="text-slate-400 text-sm mt-1">
+        <Avatar emoji={avatar} size={72} className="mb-2 animate-float" />
+        <h2 className="text-2xl font-bold text-ink-50">Welcome aboard, {name || 'traveller'}</h2>
+        <p className="text-ink-400 text-sm mt-1">
           {online} {online === 1 ? 'neighbour is' : 'neighbours are'} online on your flight
         </p>
       </motion.div>
@@ -46,16 +47,16 @@ export default function HomeScreen() {
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.08 }}
-        className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-600/40 via-slate-800/80 to-cyan-600/30 border border-white/10 shadow-xl shadow-black/40"
+        className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-jasper-600/40 via-ink-800/80 to-sea-600/30 border border-white/10 shadow-xl shadow-black/40"
       >
         <div className="p-4 flex items-start justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-widest text-cyan-200/80">{flight.airline}</p>
+            <p className="text-[11px] uppercase tracking-widest text-sea-200/80">{flight.airline}</p>
             <p className="text-xl font-bold text-white">{flight.flightNumber}</p>
           </div>
           <span
             className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${
-              mode === 'live' ? 'bg-emerald-400/20 text-emerald-300' : 'bg-amber-400/20 text-amber-200'
+              mode === 'live' ? 'bg-jade-400/20 text-jade-300' : 'bg-ocher-400/20 text-ocher-200'
             }`}
           >
             {mode === 'live' ? 'Live' : 'Demo'}
@@ -64,29 +65,29 @@ export default function HomeScreen() {
         <div className="px-4 pb-4 flex items-center gap-3">
           <div>
             <p className="text-3xl font-bold text-white tracking-wide">{flight.departureAirport || '———'}</p>
-            <p className="text-[11px] text-slate-300">From</p>
+            <p className="text-[11px] text-ink-300">From</p>
           </div>
-          <div className="flex-1 flex items-center gap-1 text-cyan-300">
-            <span className="flex-1 border-t border-dashed border-cyan-300/50" />
+          <div className="flex-1 flex items-center gap-1 text-sea-300">
+            <span className="flex-1 border-t border-dashed border-sea-300/50" />
             <Plane className="w-5 h-5 animate-float" />
-            <span className="flex-1 border-t border-dashed border-cyan-300/50" />
+            <span className="flex-1 border-t border-dashed border-sea-300/50" />
           </div>
           <div className="text-right">
             <p className="text-3xl font-bold text-white tracking-wide">{flight.arrivalAirport || '———'}</p>
-            <p className="text-[11px] text-slate-300">To</p>
+            <p className="text-[11px] text-ink-300">To</p>
           </div>
         </div>
         <div className="border-t border-dashed border-white/20 px-4 py-3 grid grid-cols-3 text-center">
           <div>
-            <p className="text-[10px] uppercase text-slate-400">Seat</p>
+            <p className="text-[10px] uppercase text-ink-400">Seat</p>
             <p className="font-semibold text-white">{flight.seatNumber || '—'}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase text-slate-400">Date</p>
+            <p className="text-[10px] uppercase text-ink-400">Date</p>
             <p className="font-semibold text-white text-sm">{flight.date}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase text-slate-400">Lofts</p>
+            <p className="text-[10px] uppercase text-ink-400">Lofts</p>
             <p className="font-semibold text-white">{others.length + 1}</p>
           </div>
         </div>
@@ -101,17 +102,17 @@ export default function HomeScreen() {
             transition={{ delay: 0.12 + i * 0.05 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => setPage(a.page)}
-            className="glass rounded-2xl p-4 text-left hover:border-cyan-400/50 hover:bg-cyan-400/5"
+            className="glass rounded-2xl p-4 text-left hover:border-sea-400/50 hover:bg-sea-400/5"
           >
-            <a.icon className="w-6 h-6 text-cyan-400 mb-2" />
-            <p className="font-semibold text-slate-100 text-sm">{a.title}</p>
-            <p className="text-xs text-slate-400 truncate">{a.desc}</p>
+            <a.icon className="w-6 h-6 text-sea-400 mb-2" />
+            <p className="font-semibold text-ink-100 text-sm">{a.title}</p>
+            <p className="text-xs text-ink-400 truncate">{a.desc}</p>
           </motion.button>
         ))}
       </div>
 
       {mode === 'demo' && (
-        <p className="text-xs text-slate-400 text-center px-4">
+        <p className="text-xs text-ink-400 text-center px-4">
           You’re flying with demo neighbours. Connect Firebase to meet the real passengers on your flight — see the README.
         </p>
       )}
@@ -126,7 +127,7 @@ export default function HomeScreen() {
           leave()
         }}
         className={`w-full py-3 text-sm flex items-center justify-center gap-2 rounded-xl transition-colors ${
-          confirmLeave ? 'bg-rose-500/15 text-rose-300' : 'text-slate-400 hover:text-rose-300'
+          confirmLeave ? 'bg-jasper-500/15 text-jasper-300' : 'text-ink-400 hover:text-jasper-300'
         }`}
       >
         <LogOut className="w-4 h-4" /> {confirmLeave ? 'Tap again to leave — your loft stays saved' : 'Leave flight'}

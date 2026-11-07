@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { ui, wada } from '../../theme/wada'
 import { Ellipse, Group, Line, Rect } from 'react-konva'
 import { getFloor, getWallpaper, ROOM_H, ROOM_W, WALL_H } from '../../lib/room'
 
@@ -62,7 +63,7 @@ function FloorPattern({ flooringId }: { flooringId: string }) {
 function CabinWindow({ x }: { x: number }) {
   return (
     <Group x={x} y={64} listening={false}>
-      <Rect x={-20} y={-30} width={40} height={60} cornerRadius={20} fill="#0b1224" opacity={0.6} />
+      <Rect x={-20} y={-30} width={40} height={60} cornerRadius={20} fill={ui.shadow} opacity={0.6} />
       <Rect
         x={-16}
         y={-26}
@@ -71,7 +72,8 @@ function CabinWindow({ x }: { x: number }) {
         cornerRadius={16}
         fillLinearGradientStartPoint={{ x: 0, y: -26 }}
         fillLinearGradientEndPoint={{ x: 0, y: 26 }}
-        fillLinearGradientColorStops={[0, '#1e3a8a', 0.6, '#60a5fa', 1, '#fde68a']}
+        // Dusk outside the window: Deep Lyons Blue → Pale King's Blue → Cream Yellow
+        fillLinearGradientColorStops={[0, wada.deepLyonsBlue, 0.6, wada.paleKingsBlue, 1, wada.creamYellow]}
       />
       <Ellipse x={-4} y={8} radiusX={9} radiusY={4} fill="#ffffff" opacity={0.7} />
       <Ellipse x={6} y={10} radiusX={7} radiusY={3} fill="#ffffff" opacity={0.6} />
@@ -141,7 +143,7 @@ export function RoomVignette() {
       fillRadialGradientEndPoint={{ x: ROOM_W / 2, y: ROOM_H / 2 }}
       fillRadialGradientStartRadius={ROOM_H * 0.35}
       fillRadialGradientEndRadius={ROOM_W * 0.75}
-      fillRadialGradientColorStops={[0, 'rgba(0,0,0,0)', 1, 'rgba(2,6,23,0.55)']}
+      fillRadialGradientColorStops={[0, 'rgba(5,18,48,0)', 1, 'rgba(5,18,48,0.55)']}
     />
   )
 }

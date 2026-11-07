@@ -19,15 +19,15 @@ export default function NowPlayingBar() {
           exit={{ height: 0, opacity: 0 }}
           className="overflow-hidden"
         >
-          <div className="mx-3 mb-2 rounded-xl bg-slate-800/90 border border-slate-700/60 p-2 flex items-center gap-3">
+          <div className="mx-3 mb-2 rounded-xl bg-ink-800/90 border border-ink-700/60 p-2 flex items-center gap-3">
             <AlbumThumb track={track} size={34} spinning />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-100 truncate">{track.title}</p>
-              <p className="text-[11px] text-slate-400 truncate">{track.artist} · playing in your loft</p>
+              <p className="text-sm font-semibold text-ink-100 truncate">{track.title}</p>
+              <p className="text-[11px] text-ink-400 truncate">{track.artist} · playing in your loft</p>
             </div>
             <div className="flex items-end gap-0.5 h-4 mr-1" aria-hidden>
               {[0, 1, 2, 3].map(i => (
-                <span key={i} className="w-0.5 bg-cyan-400 rounded-full animate-eq" style={{ animationDelay: `${i * 0.15}s` }} />
+                <span key={i} className="w-0.5 bg-sea-400 rounded-full animate-eq" style={{ animationDelay: `${i * 0.15}s` }} />
               ))}
             </div>
             <button
@@ -35,7 +35,7 @@ export default function NowPlayingBar() {
                 stop()
                 setNowPlaying(null)
               }}
-              className="p-2 rounded-full bg-slate-700 text-slate-200 hover:text-white"
+              className="p-2 rounded-full bg-ink-700 text-ink-200 hover:text-white"
               aria-label="Stop music"
             >
               <Square className="w-3.5 h-3.5" />

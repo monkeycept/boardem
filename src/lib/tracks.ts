@@ -1,4 +1,5 @@
 import { Track } from '../types'
+import { wada } from '../theme/wada'
 
 /**
  * Preset tracks are composed live in the browser with the Web Audio API,
@@ -39,7 +40,7 @@ export const PRESET_TRACKS: PresetTrack[] = [
     title: 'Midnight Code',
     artist: 'Synthwave Dreams',
     vibe: 'synthwave',
-    colors: ['#7c3aed', '#22d3ee'],
+    colors: [wada.deepIndigo, wada.benzolGreen],
     source: 'preset',
     recipe: {
       bpm: 96,
@@ -61,7 +62,7 @@ export const PRESET_TRACKS: PresetTrack[] = [
     title: 'Autumn Breeze',
     artist: 'Indie Folk',
     vibe: 'indie folk',
-    colors: ['#b45309', '#fde68a'],
+    colors: [wada.orange, wada.oliveOcher],
     source: 'preset',
     recipe: {
       bpm: 84,
@@ -82,7 +83,7 @@ export const PRESET_TRACKS: PresetTrack[] = [
     title: 'Ambient Spaces',
     artist: 'Minimalist Sounds',
     vibe: 'ambient',
-    colors: ['#334155', '#e2e8f0'],
+    colors: [wada.vandarPoelsBlue, wada.paleKingsBlue],
     source: 'preset',
     recipe: {
       bpm: 56,
@@ -103,7 +104,7 @@ export const PRESET_TRACKS: PresetTrack[] = [
     title: 'Digital Dreams',
     artist: 'Synthwave Vibes',
     vibe: 'synthwave',
-    colors: ['#db2777', '#4f46e5'],
+    colors: [wada.redViolet, wada.rosolancPurple],
     source: 'preset',
     recipe: {
       bpm: 104,
@@ -125,7 +126,7 @@ export const PRESET_TRACKS: PresetTrack[] = [
     title: 'Vinyl Groove',
     artist: 'Chill Hop Beats',
     vibe: 'chillhop',
-    colors: ['#0f766e', '#f59e0b'],
+    colors: [wada.vandykeBrown, wada.rawSienna],
     source: 'preset',
     recipe: {
       bpm: 78,
@@ -148,7 +149,7 @@ export const PRESET_TRACKS: PresetTrack[] = [
     title: 'Nature Sounds',
     artist: 'Forest Ambient',
     vibe: 'nature',
-    colors: ['#166534', '#a3e635'],
+    colors: [wada.diamineGreen, wada.khaki],
     source: 'preset',
     recipe: {
       bpm: 60,
@@ -170,7 +171,7 @@ export const PRESET_TRACKS: PresetTrack[] = [
     title: 'Retro Vibes',
     artist: '80s Synthpop',
     vibe: 'synthpop',
-    colors: ['#f472b6', '#facc15'],
+    colors: [wada.hermosaPink, wada.calamineBlue],
     source: 'preset',
     recipe: {
       bpm: 112,
@@ -192,7 +193,7 @@ export const PRESET_TRACKS: PresetTrack[] = [
     title: 'World Music Mix',
     artist: 'Global Sounds',
     vibe: 'world',
-    colors: ['#c2410c', '#0ea5e9'],
+    colors: [wada.deepLyonsBlue, wada.yellowOcher],
     source: 'preset',
     recipe: {
       bpm: 90,

@@ -20,9 +20,11 @@
     "deploy": "npm run build && gh-pages -d dist",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "type-check": "tsc --noEmit",
-    "icons": "node scripts/make-icons.mjs"
+    "icons": "python3 scripts/make_icons.py",
+    "palette": "python3 scripts/make_palette.py"
   },
   "dependencies": {
+    "ammojs-typed": "^1.1.0",
     "canvas-confetti": "^1.9.3",
     "firebase": "^10.14.1",
     "framer-motion": "^11.11.0",

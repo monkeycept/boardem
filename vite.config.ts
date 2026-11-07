@@ -37,8 +37,8 @@ export default defineConfig(({ mode }) => {
               name: 'SkyLoft',
               short_name: 'SkyLoft',
               description: "Build your dream loft, blast your music, and visit other passengers' rooms while flying.",
-              theme_color: '#0f172a',
-              background_color: '#0b1020',
+              theme_color: '#051230',
+              background_color: '#051230',
               display: 'standalone',
               orientation: 'portrait',
               scope: './',
@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => {
               ],
             },
             workbox: {
-              globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+              globPatterns: ['**/*.{js,css,html,svg,png,webp,wasm,woff2}'],
               cleanupOutdatedCaches: true,
               navigateFallback: 'index.html',
               runtimeCaching: [

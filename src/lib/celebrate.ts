@@ -1,6 +1,8 @@
 import confetti from 'canvas-confetti'
+import { wada } from '../theme/wada'
 
-const COLORS = ['#22d3ee', '#a855f7', '#f472b6', '#facc15', '#ffffff']
+// Confetti in the app's Wada combination (155) plus two warm companions.
+const COLORS = [wada.benzolGreen, wada.jasperRed, wada.orangeYellow, wada.paleKingsBlue, '#f3f7fe']
 
 export function celebrate(intensity: 'big' | 'small' = 'big') {
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
