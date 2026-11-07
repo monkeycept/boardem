@@ -1,67 +1,61 @@
 {
   "name": "skyloft",
+  "private": true,
   "version": "1.0.0",
   "description": "Build your dream loft, blast your music, and visit other passengers' rooms while flying.",
   "type": "module",
-  "homepage": "https://github.com/yourusername/skyloft#readme",
+  "homepage": "https://monkeycept.github.io/boardem/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/skyloft.git"
+    "url": "https://github.com/monkeycept/boardem.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/skyloft/issues"
+    "url": "https://github.com/monkeycept/boardem/issues"
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:single": "tsc && vite build --mode single",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist",
-    "predeploy": "npm run build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "icons": "node scripts/make-icons.mjs"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-konva": "^18.2.10",
-    "konva": "^9.2.0",
-    "firebase": "^10.7.1",
-    "zustand": "^4.4.7",
-    "framer-motion": "^10.16.16",
-    "tailwindcss": "^3.3.6",
-    "html5-qrcode": "^2.3.4",
-    "howler": "^2.2.4",
-    "lucide-react": "^0.292.0",
+    "canvas-confetti": "^1.9.3",
+    "firebase": "^10.14.1",
+    "framer-motion": "^11.11.0",
+    "html5-qrcode": "^2.3.8",
+    "konva": "^9.3.16",
+    "lucide-react": "^0.453.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1",
-    "@radix-ui/react-dialog": "^1.1.1",
-    "@radix-ui/react-dropdown-menu": "^2.0.6",
-    "@radix-ui/react-slot": "^2.0.2",
-    "@radix-ui/react-primitive": "^1.0.1",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.2.1",
-    "canvas-confetti": "^1.9.0"
+    "react-konva": "^18.2.10",
+    "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@types/react": "^18.2.37",
-    "@types/react-dom": "^18.2.15",
-    "@types/node": "^20.9.0",
-    "@types/howler": "^2.2.8",
     "@types/canvas-confetti": "^1.6.4",
-    "@vitejs/plugin-react": "^4.1.1",
-    "@vitejs/plugin-pwa": "^0.17.4",
-    "typescript": "^5.2.2",
-    "vite": "^5.0.2",
-    "vite-plugin-pwa": "^0.17.4",
-    "gh-pages": "^6.1.1",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.31",
-    "eslint": "^8.56.0",
-    "eslint-plugin-react-hooks": "^4.6.0"
+    "@types/node": "^20.16.0",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "gh-pages": "^6.2.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vite-plugin-pwa": "^0.20.5",
+    "vite-plugin-singlefile": "^2.0.2"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": ">=18.0.0"
   },
   "keywords": [
     "pwa",
@@ -73,6 +67,5 @@
     "loft",
     "real-time"
   ],
-  "author": "Your Name",
   "license": "MIT"
 }

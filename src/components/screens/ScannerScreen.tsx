@@ -1,183 +1,290 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { Html5QrcodeScanner } from 'html5-qrcode'
-import { motion } from 'framer-motion'
-import { useUserStore } from '../../stores/userStore'
-import { useFlightStore } from '../../stores/flightStore'
-import { Plane, Camera, Zap } from 'lucide-react'
-import { demoFlight, demosPassengers, demoLofts } from '../../lib/demo-data'
+import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowLeft, Keyboard, Plane, ScanLine, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
+import type { Html5Qrcode } from 'html5-qrcode'
+import { Flight } from '../../types'
+import { DEMO_FLIGHT, manualFlight, parseBoardingPass } from '../../lib/boardingPass'
+import { celebrate } from '../../lib/celebrate'
+import { setCabinHum, unlockAudio } from '../../lib/audio'
+import { isFirebaseConfigured } from '../../lib/firebase'
+import { AVATARS, useUserStore } from '../../stores/userStore'
+import { useFlightStore } from '../../stores/flightStore'
 
-export default function ScannerScreen() {
-  const { setUserName, setFlightCode, setCurrentPage } = useUserStore()
-  const { setCurrentFlight, initializeDemoData } = useFlightStore()
-  const [scanning, setScanning] = useState(true)
-  const [scanned, setScanned] = useState(false)
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null)
+type Step = 'start' | 'scan' | 'manual' | 'profile'
+
+function Scanner({ onResult, onCancel }: { onResult: (f: Flight) => void; onCancel: () => void }) {
+  const scannerRef = useRef<Html5Qrcode | null>(null)
+  const [status, setStatus] = useState('Starting camera…')
+  // Keep the latest callbacks without restarting the camera on every render.
+  const handlers = useRef({ onResult, onCancel })
+  handlers.current = { onResult, onCancel }
 
   useEffect(() => {
-    if (!scanning || scanned) return
-
-    const scanner = new Html5QrcodeScanner(
-      'qr-reader',
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1,
-        showTorchButtonIfSupported: true,
-      },
-      false
-    )
-
-    const onSuccess = (decodedText: string) => {
-      const match = decodedText.match(/([A-Z]{2}\d{3,4})-(\d{1,2}[A-Z])/)
-
-      if (match) {
-        const flightNumber = match[1]
-        const seatNumber = match[2]
-
-        handleBoardingPass(flightNumber, seatNumber)
-        setScanned(true)
-        scanner.clear()
-      }
-    }
-
-    const onError = () => {
-      // Silent error
-    }
-
-    scanner.render(onSuccess, onError)
-    scannerRef.current = scanner
-
-    return () => {
+    let cancelled = false
+    let done = false
+    const run = async () => {
       try {
-        scanner.clear()
-      } catch (e) {
-        // Ignore cleanup errors
+        const { Html5Qrcode, Html5QrcodeSupportedFormats: F } = await import('html5-qrcode')
+        if (cancelled) return
+        const scanner = new Html5Qrcode('qr-reader', {
+          verbose: false,
+          formatsToSupport: [F.QR_CODE, F.PDF_417, F.AZTEC, F.DATA_MATRIX],
+        })
+        scannerRef.current = scanner
+        await scanner.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: (w, h) => ({ width: Math.floor(w * 0.85), height: Math.floor(h * 0.55) }) },
+          text => {
+            if (done) return
+            const flight = parseBoardingPass(text)
+            if (flight) {
+              done = true
+              handlers.current.onResult(flight)
+            } else {
+              setStatus('Found a code, but it isn’t a boarding pass. Try the barcode on your pass.')
+            }
+          },
+          () => undefined,
+        )
+        if (cancelled) {
+          await scanner.stop().catch(() => undefined)
+          return
+        }
+        setStatus('Point your camera at the barcode on your boarding pass')
+      } catch {
+        if (!cancelled) {
+          toast.error('Couldn’t open the camera — enter your flight instead')
+          handlers.current.onCancel()
+        }
       }
     }
-  }, [scanning, scanned])
+    void run()
+    return () => {
+      cancelled = true
+      const s = scannerRef.current
+      if (s?.isScanning) void s.stop().then(() => s.clear()).catch(() => undefined)
+    }
+  }, [])
 
-  const handleBoardingPass = (flightNumber: string, seatNumber: string) => {
-    setUserName('Passenger')
-    setFlightCode(flightNumber)
-    setCurrentFlight({
-      flightNumber,
-      seatNumber,
-      departureAirport: 'SFO',
-      arrivalAirport: 'JFK',
-      departureTime: '09:00 AM',
-      arrivalTime: '05:30 PM',
-      date: new Date().toLocaleDateString(),
-      passengerName: 'You',
-      airline: 'American Airlines'
-    })
+  return (
+    <div className="space-y-3">
+      <div className="relative rounded-2xl overflow-hidden bg-black aspect-[4/3] ring-1 ring-cyan-400/30">
+        <div id="qr-reader" className="w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full" />
+        <div className="pointer-events-none absolute inset-x-6 top-1/2 h-0.5 bg-cyan-400/80 shadow-[0_0_12px_2px_rgba(34,211,238,0.7)] animate-pulse" />
+      </div>
+      <p className="text-sm text-slate-300 text-center">{status}</p>
+      <p className="text-xs text-slate-500 text-center">Works with the PDF417 / Aztec / QR barcode printed on paper and mobile passes.</p>
+    </div>
+  )
+}
 
-    initializeDemoData()
+export default function ScannerScreen() {
+  const { name: savedName, avatar: savedAvatar, setProfile, setPage, cabinHum } = useUserStore()
+  const board = useFlightStore(s => s.board)
+  const [step, setStep] = useState<Step>('start')
+  const [flight, setFlight] = useState<Flight | null>(null)
+  const [form, setForm] = useState({ flight: '', seat: '', from: '', to: '' })
+  const [name, setName] = useState(savedName)
+  const [avatar, setAvatar] = useState(savedAvatar)
+  const [boarding, setBoarding] = useState(false)
 
-    toast.success(`Welcome aboard ${flightNumber}!`, {
-      duration: 2000,
-      icon: '✈️'
-    })
-
-    setTimeout(() => {
-      setCurrentPage('home')
-    }, 1000)
+  const gotFlight = (f: Flight) => {
+    setFlight(f)
+    if (f.passengerName && !savedName) setName(f.passengerName.split(' ')[0])
+    setStep('profile')
   }
 
-  const handleDemoMode = () => {
-    setUserName(demoFlight.passengerName)
-    setFlightCode(demoFlight.flightNumber)
-    setCurrentFlight(demoFlight)
-    initializeDemoData()
+  const submitManual = (e: React.FormEvent) => {
+    e.preventDefault()
+    const f = manualFlight(form.flight, form.seat, form.from, form.to)
+    if (!f) {
+      toast.error('Flight number looks off — try something like QF401')
+      return
+    }
+    gotFlight(f)
+  }
 
-    toast.success(`Welcome aboard ${demoFlight.flightNumber}!`, {
-      duration: 2000,
-      icon: '✈️'
-    })
-
-    setTimeout(() => {
-      setCurrentPage('home')
-    }, 1000)
+  const handleBoard = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!flight) return
+    const trimmed = name.trim()
+    if (!trimmed) {
+      toast.error('Add a name so neighbours know who’s visiting')
+      return
+    }
+    unlockAudio()
+    if (cabinHum) setCabinHum(true)
+    setBoarding(true)
+    setProfile(trimmed.slice(0, 20), avatar)
+    await board({ ...flight, passengerName: trimmed })
+    setBoarding(false)
+    setPage('home')
+    celebrate()
+    toast.success(`Welcome aboard ${flight.flightNumber}!`, { icon: '✈️' })
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
-      {/* Header */}
-      <div className="p-6 text-center">
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="flex items-center justify-center gap-3 mb-4"
-        >
-          <Plane className="w-8 h-8 text-cyan-400" />
-          <h1 className="text-4xl font-bold text-cyan-300">SkyLoft</h1>
-        </motion.div>
+    <div className="w-full h-full overflow-y-auto bg-sky-night">
+      <div className="min-h-full max-w-md mx-auto flex flex-col px-5 py-8">
+        <motion.header initial={{ y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 shadow-lg shadow-cyan-500/30 mb-4">
+            <Plane className="w-8 h-8 text-slate-950" />
+          </div>
+          <h1 className="text-4xl font-bold text-white tracking-tight">SkyLoft</h1>
+          <p className="text-slate-300 mt-2">Turn your flight into a flying neighbourhood.</p>
+        </motion.header>
 
-        <motion.p
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-slate-300 text-lg"
-        >
-          Your flying neighborhood awaits
-        </motion.p>
+        <div className="flex-1">
+          <AnimatePresence mode="wait">
+            {step === 'start' && (
+              <motion.div key="start" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} className="space-y-3">
+                <button onClick={() => setStep('scan')} className="w-full glass rounded-2xl p-4 flex items-center gap-4 text-left hover:border-cyan-400/60 hover:bg-cyan-400/5">
+                  <ScanLine className="w-8 h-8 text-cyan-300 shrink-0" />
+                  <span>
+                    <span className="block font-semibold text-white">Scan boarding pass</span>
+                    <span className="block text-sm text-slate-400">Use your camera on the pass barcode</span>
+                  </span>
+                </button>
+                <button onClick={() => setStep('manual')} className="w-full glass rounded-2xl p-4 flex items-center gap-4 text-left hover:border-cyan-400/60 hover:bg-cyan-400/5">
+                  <Keyboard className="w-8 h-8 text-cyan-300 shrink-0" />
+                  <span>
+                    <span className="block font-semibold text-white">Enter flight details</span>
+                    <span className="block text-sm text-slate-400">Type your flight number and seat</span>
+                  </span>
+                </button>
+                <button
+                  onClick={() => gotFlight(DEMO_FLIGHT)}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-400 to-violet-500 text-slate-950 font-bold flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/30 active:scale-[0.98] transition-transform"
+                >
+                  <Sparkles className="w-5 h-5" /> Use Demo Flight
+                </button>
+                <p className="text-xs text-slate-400 text-center">
+                  {isFirebaseConfigured
+                    ? 'You’ll meet the real passengers on your flight.'
+                    : 'Demo flights come with 8 friendly neighbours to visit.'}
+                </p>
+              </motion.div>
+            )}
+
+            {step === 'scan' && (
+              <motion.div key="scan" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} className="space-y-4">
+                <Scanner onResult={gotFlight} onCancel={() => setStep('manual')} />
+                <button onClick={() => setStep('start')} className="btn-ghost w-full flex items-center justify-center gap-1">
+                  <ArrowLeft className="w-4 h-4" /> Back
+                </button>
+              </motion.div>
+            )}
+
+            {step === 'manual' && (
+              <motion.form
+                key="manual"
+                onSubmit={submitManual}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                className="glass rounded-2xl p-4 space-y-3"
+              >
+                <label className="block">
+                  <span className="text-xs text-slate-400">Flight number</span>
+                  <input
+                    className="input-base mt-1 uppercase"
+                    placeholder="QF401"
+                    value={form.flight}
+                    onChange={e => setForm({ ...form, flight: e.target.value })}
+                    autoFocus
+                    required
+                  />
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <label className="block">
+                    <span className="text-xs text-slate-400">Seat</span>
+                    <input className="input-base mt-1 uppercase" placeholder="12A" maxLength={4} value={form.seat} onChange={e => setForm({ ...form, seat: e.target.value })} />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-slate-400">From</span>
+                    <input className="input-base mt-1 uppercase" placeholder="MEL" maxLength={3} value={form.from} onChange={e => setForm({ ...form, from: e.target.value })} />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-slate-400">To</span>
+                    <input className="input-base mt-1 uppercase" placeholder="SYD" maxLength={3} value={form.to} onChange={e => setForm({ ...form, to: e.target.value })} />
+                  </label>
+                </div>
+                <button type="submit" className="btn-primary w-full py-3">
+                  Continue
+                </button>
+                <button type="button" onClick={() => setStep('start')} className="btn-ghost w-full flex items-center justify-center gap-1">
+                  <ArrowLeft className="w-4 h-4" /> Back
+                </button>
+              </motion.form>
+            )}
+
+            {step === 'profile' && flight && (
+              <motion.form
+                key="profile"
+                onSubmit={handleBoard}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                className="space-y-4"
+              >
+                <div className="glass rounded-2xl p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-widest text-slate-400">{flight.airline}</p>
+                    <p className="text-lg font-bold text-white">
+                      {flight.flightNumber}
+                      {flight.departureAirport && flight.arrivalAirport && (
+                        <span className="text-slate-300 font-medium"> · {flight.departureAirport} → {flight.arrivalAirport}</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[11px] uppercase text-slate-400">Seat</p>
+                    <p className="text-lg font-bold text-cyan-300">{flight.seatNumber || '—'}</p>
+                  </div>
+                </div>
+
+                <div className="glass rounded-2xl p-4 space-y-4">
+                  <label className="block">
+                    <span className="text-xs text-slate-400">What should neighbours call you?</span>
+                    <input className="input-base mt-1" value={name} maxLength={20} onChange={e => setName(e.target.value)} placeholder="Your name" autoFocus />
+                  </label>
+                  <div>
+                    <span className="text-xs text-slate-400">Pick your avatar</span>
+                    <div className="grid grid-cols-6 gap-2 mt-2">
+                      {AVATARS.map(a => (
+                        <button
+                          type="button"
+                          key={a}
+                          onClick={() => setAvatar(a)}
+                          aria-label={`Avatar ${a}`}
+                          aria-pressed={avatar === a}
+                          className={`text-2xl aspect-square rounded-xl flex items-center justify-center transition-all ${
+                            avatar === a ? 'bg-cyan-400/25 ring-2 ring-cyan-400 scale-110' : 'bg-slate-800/70 hover:bg-slate-700'
+                          }`}
+                        >
+                          {a}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={boarding}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-400 to-violet-500 text-slate-950 font-bold flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/30 disabled:opacity-60"
+                >
+                  {boarding ? <span className="spinner" /> : <Plane className="w-5 h-5" />} {boarding ? 'Connecting…' : 'Board flight'}
+                </button>
+                <button type="button" onClick={() => setStep('start')} className="btn-ghost w-full flex items-center justify-center gap-1">
+                  <ArrowLeft className="w-4 h-4" /> Change flight
+                </button>
+              </motion.form>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
-
-      {/* Scanner or Demo */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 gap-6">
-        {scanning && !scanned ? (
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="w-full max-w-sm"
-          >
-            <div className="glass rounded-2xl p-6 overflow-hidden">
-              <div
-                id="qr-reader"
-                className="w-full"
-                style={{ minHeight: '300px' }}
-              />
-              <div className="mt-4 text-center text-slate-400 text-sm">
-                Point camera at boarding pass QR code
-              </div>
-            </div>
-          </motion.div>
-        ) : null}
-
-        {/* Scanning indicator */}
-        {scanning && !scanned && (
-          <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="flex items-center gap-2 text-cyan-400"
-          >
-            <Camera className="w-5 h-5" />
-            <span>Scanning...</span>
-          </motion.div>
-        )}
-      </div>
-
-      {/* Demo Mode Button */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="p-6 space-y-3"
-      >
-        <button
-          onClick={handleDemoMode}
-          className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all active:scale-95 flex items-center justify-center gap-2"
-        >
-          <Zap className="w-5 h-5" />
-          Use Demo Flight
-        </button>
-
-        <p className="text-xs text-slate-400 text-center">
-          Can't scan? Try demo mode to explore with 8 real passengers
-        </p>
-      </motion.div>
     </div>
   )
 }

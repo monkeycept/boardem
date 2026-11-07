@@ -1,39 +1,50 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { Page } from '../types'
+import { persistStorage } from '../lib/storage'
 
-type CurrentPage = 'scanner' | 'home' | 'loft' | 'passengers' | 'chat'
+export const AVATARS = ['🧑‍✈️', '👩‍💻', '🧑‍🎤', '👨‍🎨', '🧑‍🚀', '👩‍🔬', '🦊', '🐼', '🐸', '🦄', '🐙', '🤖']
 
 interface UserState {
-  userId: string | null
-  userName: string | null
-  userAvatar: string | null
-  flightCode: string | null
+  name: string
+  avatar: string
+  page: Page
+  cabinHum: boolean
+  celebratedSave: boolean
+  visitedLofts: string[]
+  lastChatSeenAt: number
 
-  setUserId: (id: string) => void
-  setUserName: (name: string) => void
-  setUserAvatar: (avatar: string) => void
-  setFlightCode: (code: string) => void
-
-  currentPage: CurrentPage
-  setCurrentPage: (page: CurrentPage) => void
-
-  hasSeenTutorial: boolean
-  setHasSeenTutorial: (seen: boolean) => void
+  setProfile: (name: string, avatar: string) => void
+  setPage: (page: Page) => void
+  setCabinHum: (on: boolean) => void
+  markSaveCelebrated: () => void
+  markVisited: (loftId: string) => boolean
+  markChatSeen: () => void
 }
 
-export const useUserStore = create<UserState>((set) => ({
-  userId: null,
-  userName: null,
-  userAvatar: null,
-  flightCode: null,
+export const useUserStore = create<UserState>()(
+  persist(
+    (set, get) => ({
+      name: '',
+      avatar: AVATARS[0],
+      page: 'home',
+      cabinHum: true,
+      celebratedSave: false,
+      visitedLofts: [],
+      lastChatSeenAt: 0,
 
-  setUserId: (id) => set({ userId: id }),
-  setUserName: (name) => set({ userName: name }),
-  setUserAvatar: (avatar) => set({ userAvatar: avatar }),
-  setFlightCode: (code) => set({ flightCode: code }),
-
-  currentPage: 'scanner',
-  setCurrentPage: (page) => set({ currentPage: page }),
-
-  hasSeenTutorial: false,
-  setHasSeenTutorial: (seen) => set({ hasSeenTutorial: seen }),
-}))
+      setProfile: (name, avatar) => set({ name, avatar }),
+      setPage: page => set(page === 'chat' ? { page, lastChatSeenAt: Date.now() } : { page }),
+      setCabinHum: on => set({ cabinHum: on }),
+      markSaveCelebrated: () => set({ celebratedSave: true }),
+      /** Returns true the first time a loft is visited. */
+      markVisited: loftId => {
+        if (get().visitedLofts.includes(loftId)) return false
+        set({ visitedLofts: [...get().visitedLofts, loftId] })
+        return true
+      },
+      markChatSeen: () => set({ lastChatSeenAt: Date.now() }),
+    }),
+    { name: 'skyloft-user', storage: persistStorage, version: 2 },
+  ),
+)

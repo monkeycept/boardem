@@ -1,378 +1,110 @@
 # ✈️ SkyLoft
 
-**Turn every flight into a flying neighborhood.**
+**Turn every flight into a flying neighbourhood.**
 
-Build your dream loft, blast your music, and visit other passengers' rooms while flying.
+Board your flight, build a tiny loft, put some music on, and drop into the lofts of the other passengers on your plane — all from your phone.
 
----
-
-## 🌌 The Magic
-
-SkyLoft transforms airplane flights into connected flying communities. Scan your boarding pass, design your personal "loft" with furniture and album art, play your favorite music, and visit other passengers' rooms in real time—all over airplane WiFi. It's The Sims meets Airdrop, but you're 30,000 feet in the air.
-
-**Imagine this:**
-- You board Flight AA123. SkyLoft connects you to 8 other passengers on the same flight.
-- You drag a cozy bed into your room, add a vinyl player, pin your favorite album poster to the wall.
-- Your music starts playing softly in the background.
-- You pop into your neighbor's loft and see their cyberpunk setup with neon lights and lo-fi beats.
-- You float your tiny avatar across their room and chat via speech bubbles.
-- When you land, your loft saves. On your next flight, it's waiting for you.
-
-**Vibe:** Deep navy and purple gradients, glowing cyan accents, glassmorphism, buttery animations, and the gentle hum of airplane ambient sound.
+**▶ Live app: https://monkeycept.github.io/boardem/**
 
 ---
 
-## 🎮 Features (MVP)
+## What you can do
 
-### 1. **Boarding Pass Scanner**
-- Full-screen QR code scanner (HTML5 Camera API)
-- Parse flight number, seat, and passenger name
-- Confetti celebration + "Welcome aboard Flight AA123!" animation
-- Works with both real QR codes and demo mock data
+| | |
+|---|---|
+| 🎫 **Board** | Scan the barcode on a real boarding pass (PDF417 / Aztec / QR, IATA BCBP format), type your flight number, or tap **Use Demo Flight**. Pick a name and avatar. |
+| 🛋️ **Build your loft** | Drag-and-drop room editor: 12 furniture pieces, 8 wallpapers, 8 floors, album posters on the wall. Tap an item to rotate, resize, bring to front or remove. Works with touch and mouse (Delete / R / + / − on a keyboard). Autosaves. |
+| 🎵 **Music** | 8 built-in tracks (synthwave, chillhop, folk, ambient, nature…) composed live in the browser, plus your own MP3s. Whatever plays in your loft is what visitors hear. Tap an album poster to play it. |
+| 🚪 **Visit neighbours** | See every passenger on your flight, then walk into their loft: the exact layout they built, their music playing, other visitors wandering around, and speech-bubble chat. Tap the floor to walk. |
+| 💬 **Cabin chat** | A group chat for the whole flight, with unread badges. |
+| 📲 **Installable PWA** | Add to home screen on iOS / Android; works offline once loaded (handy on flaky plane Wi-Fi). Gentle cabin-hum ambience you can switch off. |
 
-### 2. **Personal Loft Builder**
-- Interactive 2D drag-and-drop room using Konva canvas
-- 12+ furniture items: bed, couch, desk, plants, lamps, rug, speaker, TV, wall posters, shelves
-- Full manipulation: drag, drop, move, layer, rotate, delete
-- Wallpaper and floor selector
-- Wall frames for album art and photos
-- Automatic saves to browser local storage + Firebase
+### Demo vs live
 
-### 3. **Music & Albums**
-- Upload local MP3s or choose from 6 preset chill tracks
-- Draggable album art posters on walls
-- Click poster to play—music plays in real time for visitors
-- Album metadata display (artist, title, vibes)
+* **Demo** (default): runs entirely in your browser with 8 demo neighbours — Amara, Marcus, Zara, Kai, Nova, River, Sienna and Atlas — who each have their own loft, music and chatty personality. Nothing leaves your device.
+* **Live**: add a free Firebase project and SkyLoft syncs passengers, lofts, visitor positions and chat in real time between everyone who boards the same flight number. See [SETUP.md](./SETUP.md).
 
-### 4. **Flight Lobby**
-- Real-time passenger list for your flight
-- 8 fun demo profiles with unique lofts
-- Passenger avatars and online status
-- Quick "Visit Loft" button for each passenger
-
-### 5. **Visit Other Lofts**
-- Enter "visitor mode" in any passenger's room
-- See their exact furniture layout and decorations
-- Watch their music play in real time
-- Move your tiny avatar around the room
-- Live chat with speech bubbles
-- See other visitors in the room too
-
-### 6. **Real-Time Connections**
-- Group passengers by flight code from boarding pass
-- Firebase Firestore for instant sync of:
-  - Passenger list and online status
-  - Room layouts and furniture placement
-  - Chat messages
-  - Currently playing music
-- Feels like local Airdrop over airplane WiFi
-
-### 7. **Full PWA**
-- Install on home screen (iOS & Android)
-- Offline support for loft editing
-- Complete manifest.json
-- Optimized service worker
-- Works on all modern browsers
-
-### 8. **Bottom Navigation**
-- Home (welcome + flight info)
-- My Loft (builder)
-- Passengers (lobby)
-- Chat (global flight chat)
+The header shows a **Demo** or **● Live** badge so you always know which you're in.
 
 ---
 
-## 🎨 Design Philosophy
-
-- **100% mobile-first** — optimized for phone screens, touch-perfect drag interactions
-- **Dark theme only** — premium, Apple-level polish
-- **Subtle ambient sounds** — gentle plane hum on load
-- **Generous animations** — Framer Motion for delight at every interaction
-- **Glassmorphism** — frosted glass panels on dark backgrounds
-- **Confetti moments** — celebrate boarding, saves, and first visits
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 16+
-- npm or yarn
-- A free Firebase account (< 5 min to set up)
-
-### Installation
+## Quick start
 
 ```bash
-git clone https://github.com/yourusername/skyloft.git
-cd skyloft
 npm install
+npm run dev        # http://localhost:5173 — open it on your phone on the same Wi-Fi too
 ```
 
-### Firebase Setup (Super Simple)
-
-1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Create a new project called "SkyLoft"
-3. Enable "Anonymous Authentication" (Settings > Authentication > Sign-in Method)
-4. Create a Firestore Database in test mode (Collections > Start Collection)
-5. Copy your Firebase config from Project Settings > SDK setup
-
-Create `.env.local` in your project root:
-
-```
-VITE_FIREBASE_API_KEY=your_api_key_here
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
-```
-
-### Run Locally
+Other scripts:
 
 ```bash
-npm run dev
+npm run build      # type-check + production PWA build in dist/
+npm run preview    # serve the production build locally
+npm run lint
+npm run build:single   # one self-contained HTML file in dist-single/ (no service worker)
 ```
 
-Open http://localhost:5173 in your browser (or your phone on the same WiFi).
+## Deploying
+
+Every push to `main` builds the app and publishes it to GitHub Pages via `.github/workflows/deploy.yml` (it pushes the build to the `gh-pages` branch). The build uses relative paths, so it works under any repo name or custom domain.
+
+To deploy by hand instead: `npm run deploy`.
+
+To turn on live mode in the deployed site, add the `VITE_FIREBASE_*` values as repository **secrets** (Settings → Secrets and variables → Actions) — the workflow passes them to the build.
 
 ---
 
-## 📦 Deploy to GitHub Pages
-
-1. Update `vite.config.ts`:
-   ```typescript
-   export default defineConfig({
-     base: '/skyloft/', // Change to your repo name
-     ...
-   })
-   ```
-
-2. Deploy:
-   ```bash
-   npm run build
-   npm run deploy
-   ```
-
-3. Go to your repo Settings > Pages > set source to "gh-pages" branch
-
-Your PWA is now live at: `https://yourusername.github.io/skyloft`
-
----
-
-## 📱 Install as PWA
-
-**On iPhone (iOS):**
-1. Open in Safari
-2. Tap the Share button
-3. Tap "Add to Home Screen"
-4. Name it "SkyLoft" and tap "Add"
-
-**On Android:**
-1. Open in Chrome
-2. Tap the three-dot menu
-3. Tap "Install app" or "Add to Home Screen"
-
-The app will work offline for your loft editing!
-
----
-
-## 🛠 Tech Stack
+## How it's built
 
 | Layer | Tech |
-|-------|------|
-| **Build** | Vite 5 + React 18 + TypeScript |
-| **Styling** | Tailwind CSS + shadcn/ui + Radix |
-| **Animations** | Framer Motion |
-| **Canvas** | react-konva (loft builder) |
-| **QR Scanner** | html5-qrcode |
-| **Audio** | Howler.js |
-| **Backend** | Firebase (Firestore + Anonymous Auth) |
-| **State** | Zustand |
-| **Icons** | Lucide React |
-| **Toasts** | react-hot-toast |
-| **PWA** | @vitejs/plugin-pwa |
-
----
-
-## 📂 Folder Structure
+|---|---|
+| App | Vite 5, React 18, TypeScript (strict) |
+| Styling | Tailwind CSS, Framer Motion |
+| Room editor | Konva + react-konva |
+| State | Zustand (persisted to localStorage) |
+| Music | Web Audio API generative engine (`src/lib/audio.ts`) — no audio files shipped |
+| Boarding pass | html5-qrcode + IATA BCBP parser (`src/lib/boardingPass.ts`) |
+| Realtime (optional) | Firebase Anonymous Auth + Firestore, loaded lazily only when configured |
+| PWA | vite-plugin-pwa (Workbox) |
 
 ```
-skyloft/
-├── src/
-│   ├── components/
-│   │   ├── layout/
-│   │   │   ├── BottomNav.tsx
-│   │   │   ├── Header.tsx
-│   │   │   └── Layout.tsx
-│   │   ├── screens/
-│   │   │   ├── HomeScreen.tsx
-│   │   │   ├── LoftBuilderScreen.tsx
-│   │   │   ├── PassengersScreen.tsx
-│   │   │   ├── ChatScreen.tsx
-│   │   │   ├── ScannerScreen.tsx
-│   │   │   └── VisitLoftScreen.tsx
-│   │   ├── loft/
-│   │   │   ├── LoftCanvas.tsx
-│   │   │   ├── FurnitureItem.tsx
-│   │   │   ├── FurnitureInventory.tsx
-│   │   │   └── WallpaperSelector.tsx
-│   │   ├── passengers/
-│   │   │   ├── PassengerCard.tsx
-│   │   │   ├── PassengerList.tsx
-│   │   │   └── PassengerAvatar.tsx
-│   │   ├── chat/
-│   │   │   ├── ChatBubble.tsx
-│   │   │   ├── ChatInput.tsx
-│   │   │   └── ChatPanel.tsx
-│   │   └── common/
-│   │       ├── ConfettiCannon.tsx
-│   │       ├── MusicPlayer.tsx
-│   │       └── LoadingSpinner.tsx
-│   ├── hooks/
-│   │   ├── useFirebase.ts
-│   │   ├── useAudio.ts
-│   │   └── useLocalStorage.ts
-│   ├── stores/
-│   │   ├── flightStore.ts
-│   │   ├── loftStore.ts
-│   │   └── userStore.ts
-│   ├── types/
-│   │   ├── index.ts
-│   │   └── firebase.ts
-│   ├── lib/
-│   │   ├── firebase.ts
-│   │   ├── demo-data.ts
-│   │   └── utils.ts
-│   ├── assets/
-│   │   ├── audio/
-│   │   │   ├── ambient-hum.mp3
-│   │   │   └── preset-tracks/
-│   │   ├── images/
-│   │   └── fonts/
-│   ├── styles/
-│   │   └── globals.css
-│   ├── App.tsx
-│   └── main.tsx
-├── public/
-│   ├── manifest.json
-│   ├── icons/
-│   │   ├── icon-192.png
-│   │   ├── icon-512.png
-│   │   └── apple-touch-icon.png
-│   └── robots.txt
-├── package.json
-├── vite.config.ts
-├── tsconfig.json
-├── tailwind.config.ts
-├── postcss.config.js
-└── .env.local (create this)
+src/
+├── App.tsx                    # screen routing
+├── components/
+│   ├── layout/                # Header, BottomNav, Layout
+│   ├── screens/               # Scanner, Home, LoftBuilder, Passengers, Chat, VisitLoft
+│   ├── loft/                  # RoomStage (shared canvas), FurnitureNode, AvatarNode, DecorateSheet, ItemToolbar
+│   └── common/                # AlbumThumb, NowPlayingBar
+├── hooks/                     # useMyMusic, useRoomPresence
+├── lib/                       # room catalog, tracks, audio engine, boarding pass parser, firebase sync, demo data
+├── stores/                    # userStore, loftStore, flightStore, audioStore
+└── types/
 ```
 
----
+Every loft is laid out in the same 460×380 logical room and scaled to fit the screen, so a visitor sees exactly what the owner built.
 
-## 🎯 How It Works On A Plane
+### Firestore layout (live mode)
 
-1. **Before Boarding:** Download SkyLoft on your phone and add to home screen
-2. **At Gate:** Scan your boarding pass (or use demo data)
-3. **During Flight:** 
-   - Connect to Airplane WiFi
-   - Design your loft while cruising
-   - Visit 8 other passengers' rooms
-   - Chat and hang out
-4. **After Landing:** Your loft saves—visit it on your next flight!
-
-All synced through Firebase with anonymous auth (no login required!).
-
----
-
-## 🎮 Demo Profiles
-
-The app ships with 8 fun passenger profiles:
-
-1. **Amara** — Cyberpunk hacker vibe, neon lights, lo-fi tracks
-2. **Marcus** — Cozy bookworm, plants everywhere, indie folk
-3. **Zara** — Minimalist artist, sparse furniture, ambient sounds
-4. **Kai** — Gamer setup with RGB everything, synthwave
-5. **Nova** — Music producer, vinyl records, chillwave
-6. **River** — Nature lover, forest aesthetic, nature sounds
-7. **Sienna** — Retro 80s vibes, pastel colors, synthpop
-8. **Atlas** — Traveler's collection, world maps, world music
-
-Each has a unique loft layout, music, and personality.
-
----
-
-## 🔮 Roadmap
-
-### Phase 2 (Next Steps)
-- [ ] **Real WebRTC with PeerJS** — Pure peer-to-peer sync over local WiFi (no Firebase needed)
-- [ ] **Avatar Customization** — Design your character
-- [ ] **Multiplayer Mini-Games** — Play with other passengers
-- [ ] **Photo Sharing** — Capture and display flight moments
-- [ ] **Leaderboards** — Most creative lofts, most visitors, etc.
-- [ ] **Airlines Integration** — Official partnerships for real boarding pass data
-
-### Phase 3
-- [ ] **Persistent Accounts** — Cloud saves across flights
-- [ ] **Loft Themes** — Pre-made beautiful room templates
-- [ ] **Voice Chat** — Talk directly with other passengers
-- [ ] **AR Preview** — See your loft in AR before boarding
-
----
-
-## 🐛 Debugging & Troubleshooting
-
-**Firebase not connecting?**
-- Check your `.env.local` file
-- Make sure Firestore is in test mode
-- Check Firebase Console for errors
-
-**QR Scanner not working?**
-- Use demo data instead (it's built in)
-- On iOS, use Safari (not Chrome)
-- Grant camera permissions
-
-**Audio not playing?**
-- Check browser audio permissions
-- Try a different track
-- Check browser console for errors
-
-**Offline not working?**
-- Make sure you're on HTTPS (localhost works)
-- Service worker takes ~30 seconds to register
-- Check DevTools > Application > Service Workers
-
----
-
-## 📄 License
-
-MIT — Use it, fork it, improve it!
-
----
-
-## 🙏 Credits
-
-Built with love for the friendly skies ✈️
-
-Made with:
-- Vite for lightning-fast builds
-- Firebase for real-time magic
-- React Konva for smooth canvas interactions
-- Framer Motion for delightful animations
-- And a passion for making flights more fun
-
----
-
-## 💬 Questions?
-
-- Check the [demo](https://skyloft-demo.vercel.com) (placeholder)
-- File an issue on GitHub
-- DM on Twitter [@skyloftapp](https://twitter.com)
-
----
-
-**Now board your flight and build something beautiful.** ✈️✨
+```
+flights/{flightNumber}/passengers/{uid}   name, avatar, seat, lastSeen, visiting, x, y
+flights/{flightNumber}/lofts/{uid}        furniture, wallpaper, flooring, currentlyPlaying
+flights/{flightNumber}/messages/{id}      text, sender, timestamp, loftId?
 ```
 
-Now let me create the complete project structure and files:
+A passenger shows as online if they've sent a heartbeat in the last 90 seconds. Starter security rules are in [`firestore.rules`](./firestore.rules).
+
+---
+
+## Known limits
+
+* Uploaded MP3s stay on your device: visitors see the song title but can't hear it (sharing audio would need file storage).
+* Uploaded songs are kept for the session only; after a reload, re-upload them.
+* Camera scanning needs HTTPS (GitHub Pages and `localhost` are fine) and camera permission. If the camera isn't available, enter the flight manually.
+
+## Ideas for later
+
+Peer-to-peer sync over the cabin network (WebRTC) so it works without internet, avatar customisation, mini-games between passengers, shared playlists.
+
+## License
+
+MIT

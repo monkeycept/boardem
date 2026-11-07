@@ -1,106 +1,124 @@
-import React from 'react'
 import { motion } from 'framer-motion'
-import { useUserStore } from '../../stores/userStore'
+import { LogOut, MessageCircle, Music2, Paintbrush, Plane, Users } from 'lucide-react'
 import { useFlightStore } from '../../stores/flightStore'
-import { Users, Music, Zap, MessageSquare } from 'lucide-react'
+import { useUserStore } from '../../stores/userStore'
+import { useLoftStore } from '../../stores/loftStore'
+import { useAudioStore } from '../../stores/audioStore'
 
 export default function HomeScreen() {
-  const { userName } = useUserStore()
-  const { passengers } = useFlightStore()
-  const onlineCount = passengers.filter(p => p.status === 'online').length
+  const { flight, passengers, myId, mode, leave } = useFlightStore()
+  const { name, avatar, setPage } = useUserStore()
+  const furnitureCount = useLoftStore(s => s.furniture.length)
+  const nowPlaying = useLoftStore(s => s.nowPlaying)
+  const stopMusic = useAudioStore(s => s.stop)
+  if (!flight) return null
 
-  const features = [
-    {
-      icon: <Zap className="w-6 h-6" />,
-      title: 'Design Your Loft',
-      desc: 'Drag furniture, hang posters, set the vibe'
-    },
-    {
-      icon: <Music className="w-6 h-6" />,
-      title: 'Share Your Music',
-      desc: 'Play your favorite tracks for visitors'
-    },
-    {
-      icon: <Users className="w-6 h-6" />,
-      title: 'Visit Others',
-      desc: 'Check out 8 unique passenger lofts'
-    },
-    {
-      icon: <MessageSquare className="w-6 h-6" />,
-      title: 'Chat & Vibe',
-      desc: 'Float chat bubbles across lofts'
-    },
+  const others = passengers.filter(p => p.id !== myId)
+  const online = others.filter(p => p.status === 'online').length
+
+  const actions = [
+    { icon: Paintbrush, title: 'Design your loft', desc: `${furnitureCount} items placed`, page: 'loft' as const },
+    { icon: Users, title: 'Visit neighbours', desc: `${others.length} lofts on board`, page: 'passengers' as const },
+    { icon: Music2, title: 'Set the vibe', desc: nowPlaying ? `♪ ${nowPlaying.title}` : 'Nothing playing', page: 'loft' as const },
+    { icon: MessageCircle, title: 'Cabin chat', desc: `${online} online now`, page: 'chat' as const },
   ]
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Welcome Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="p-6 text-center"
-      >
-        <h2 className="text-3xl font-bold text-cyan-300 mb-2">
-          Welcome, {userName}! ✈️
-        </h2>
-        <p className="text-slate-300 text-lg mb-6">
-          {onlineCount} passengers online on your flight
+    <div className="p-4 space-y-4">
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="text-center pt-2">
+        <p className="text-5xl mb-2">{avatar}</p>
+        <h2 className="text-2xl font-bold text-slate-50">Welcome aboard, {name || 'traveller'}</h2>
+        <p className="text-slate-400 text-sm mt-1">
+          {online} {online === 1 ? 'neighbour is' : 'neighbours are'} online on your flight
         </p>
+      </motion.div>
 
-        {/* Status cards */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="glass rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-cyan-400">{onlineCount}</div>
-            <div className="text-xs text-slate-400">Online</div>
+      {/* Boarding pass */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.08 }}
+        className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-600/40 via-slate-800/80 to-cyan-600/30 border border-white/10 shadow-xl shadow-black/40"
+      >
+        <div className="p-4 flex items-start justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-widest text-cyan-200/80">{flight.airline}</p>
+            <p className="text-xl font-bold text-white">{flight.flightNumber}</p>
           </div>
-          <div className="glass rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-cyan-400">8</div>
-            <div className="text-xs text-slate-400">Lofts</div>
+          <span
+            className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${
+              mode === 'live' ? 'bg-emerald-400/20 text-emerald-300' : 'bg-amber-400/20 text-amber-200'
+            }`}
+          >
+            {mode === 'live' ? 'Live' : 'Demo'}
+          </span>
+        </div>
+        <div className="px-4 pb-4 flex items-center gap-3">
+          <div>
+            <p className="text-3xl font-bold text-white tracking-wide">{flight.departureAirport || '———'}</p>
+            <p className="text-[11px] text-slate-300">From</p>
           </div>
-          <div className="glass rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-cyan-400">🎵</div>
-            <div className="text-xs text-slate-400">Vibing</div>
+          <div className="flex-1 flex items-center gap-1 text-cyan-300">
+            <span className="flex-1 border-t border-dashed border-cyan-300/50" />
+            <Plane className="w-5 h-5 animate-float" />
+            <span className="flex-1 border-t border-dashed border-cyan-300/50" />
+          </div>
+          <div className="text-right">
+            <p className="text-3xl font-bold text-white tracking-wide">{flight.arrivalAirport || '———'}</p>
+            <p className="text-[11px] text-slate-300">To</p>
+          </div>
+        </div>
+        <div className="border-t border-dashed border-white/20 px-4 py-3 grid grid-cols-3 text-center">
+          <div>
+            <p className="text-[10px] uppercase text-slate-400">Seat</p>
+            <p className="font-semibold text-white">{flight.seatNumber || '—'}</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase text-slate-400">Date</p>
+            <p className="font-semibold text-white text-sm">{flight.date}</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase text-slate-400">Lofts</p>
+            <p className="font-semibold text-white">{others.length + 1}</p>
           </div>
         </div>
       </motion.div>
 
-      {/* Features Grid */}
-      <div className="flex-1 px-4 pb-4 overflow-y-auto">
-        <div className="grid grid-cols-2 gap-3">
-          {features.map((feature, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              className="glass rounded-xl p-4 text-center hover:border-cyan-500/50 transition-colors"
-            >
-              <div className="flex justify-center mb-2 text-cyan-400">
-                {feature.icon}
-              </div>
-              <h3 className="font-bold text-slate-100 text-sm mb-1">
-                {feature.title}
-              </h3>
-              <p className="text-xs text-slate-400">
-                {feature.desc}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-6 space-y-3"
-        >
-          <p className="text-slate-400 text-xs text-center mb-3">
-            Pick a tab below to get started
-          </p>
-        </motion.div>
+      <div className="grid grid-cols-2 gap-3">
+        {actions.map((a, i) => (
+          <motion.button
+            key={a.title}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 + i * 0.05 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setPage(a.page)}
+            className="glass rounded-2xl p-4 text-left hover:border-cyan-400/50 hover:bg-cyan-400/5"
+          >
+            <a.icon className="w-6 h-6 text-cyan-400 mb-2" />
+            <p className="font-semibold text-slate-100 text-sm">{a.title}</p>
+            <p className="text-xs text-slate-400 truncate">{a.desc}</p>
+          </motion.button>
+        ))}
       </div>
+
+      {mode === 'demo' && (
+        <p className="text-xs text-slate-400 text-center px-4">
+          You’re flying with demo neighbours. Connect Firebase to meet the real passengers on your flight — see the README.
+        </p>
+      )}
+
+      <button
+        onClick={() => {
+          if (window.confirm('Leave this flight? Your loft stays saved for next time.')) {
+            stopMusic()
+            leave()
+          }
+        }}
+        className="w-full py-3 text-sm text-slate-400 hover:text-rose-300 flex items-center justify-center gap-2"
+      >
+        <LogOut className="w-4 h-4" /> Leave flight
+      </button>
     </div>
   )
 }

@@ -1,306 +1,286 @@
-import { Passenger, Loft, FurnitureItem } from '../types/index'
+import { ChatMessage, FurnitureItem, FurnitureType, Loft, Passenger } from '../types'
+import { getPresetTrack } from './tracks'
 
-const demoAvatars = [
-  '👩‍💻', // Amara
-  '👨‍🎓', // Marcus
-  '👩‍🎨', // Zara
-  '👨‍🎮', // Kai
-  '👩‍🎵', // Nova
-  '👨‍🌾', // River
-  '👩‍🚀', // Sienna
-  '👨‍✈️'  // Atlas
-]
+type Spec = { type: FurnitureType; x: number; y: number; rotation?: number; scale?: number; color?: string; trackId?: string }
 
-const createFurniture = (items: Array<{ type: FurnitureItem['type'], x: number, y: number, rotation?: number, scale?: number, color?: string }>): FurnitureItem[] => {
-  return items.map((item, idx) => ({
-    id: `furniture-${idx}`,
+const build = (owner: string, items: Spec[]): FurnitureItem[] =>
+  items.map((item, idx) => ({
+    id: `${owner}-item-${idx}`,
     type: item.type,
     x: item.x,
     y: item.y,
-    rotation: item.rotation || 0,
-    scale: item.scale || 1,
+    rotation: item.rotation ?? 0,
+    scale: item.scale ?? 1,
     zIndex: idx,
     color: item.color,
+    trackId: item.trackId,
   }))
+
+interface DemoProfile {
+  id: string
+  name: string
+  avatar: string
+  seat: string
+  vibe: string
+  status: 'online' | 'offline'
+  wallpaper: string
+  flooring: string
+  trackId: string
+  furniture: Spec[]
+  greeting: string
+  replies: string[]
 }
 
-export const demosPassengers: Passenger[] = [
+export const DEMO_PROFILES: DemoProfile[] = [
   {
-    id: 'demo-1',
+    id: 'demo-amara',
     name: 'Amara',
-    avatar: demoAvatars[0],
+    avatar: '👩‍💻',
+    seat: '14C',
+    vibe: 'Cyberpunk hacker den',
     status: 'online',
-    loftId: 'loft-1',
-    joinedAt: Date.now() - 300000,
-  },
-  {
-    id: 'demo-2',
-    name: 'Marcus',
-    avatar: demoAvatars[1],
-    status: 'online',
-    loftId: 'loft-2',
-    joinedAt: Date.now() - 600000,
-  },
-  {
-    id: 'demo-3',
-    name: 'Zara',
-    avatar: demoAvatars[2],
-    status: 'online',
-    loftId: 'loft-3',
-    joinedAt: Date.now() - 900000,
-  },
-  {
-    id: 'demo-4',
-    name: 'Kai',
-    avatar: demoAvatars[3],
-    status: 'online',
-    loftId: 'loft-4',
-    joinedAt: Date.now() - 1200000,
-  },
-  {
-    id: 'demo-5',
-    name: 'Nova',
-    avatar: demoAvatars[4],
-    status: 'online',
-    loftId: 'loft-5',
-    joinedAt: Date.now() - 1500000,
-  },
-  {
-    id: 'demo-6',
-    name: 'River',
-    avatar: demoAvatars[5],
-    status: 'online',
-    loftId: 'loft-6',
-    joinedAt: Date.now() - 1800000,
-  },
-  {
-    id: 'demo-7',
-    name: 'Sienna',
-    avatar: demoAvatars[6],
-    status: 'online',
-    loftId: 'loft-7',
-    joinedAt: Date.now() - 2100000,
-  },
-  {
-    id: 'demo-8',
-    name: 'Atlas',
-    avatar: demoAvatars[7],
-    status: 'offline',
-    loftId: 'loft-8',
-    joinedAt: Date.now() - 2400000,
-  },
-]
-
-export const demoLofts: Record<string, Loft> = {
-  'loft-1': {
-    id: 'loft-1',
-    ownerId: 'demo-1',
-    ownerName: 'Amara',
-    flightCode: 'AA123',
-    wallpaper: 'dark-purple',
+    wallpaper: 'dark-neon',
     flooring: 'neon-grid',
-    furniture: createFurniture([
-      { type: 'bed', x: 50, y: 150, scale: 1.2 },
-      { type: 'desk', x: 200, y: 100 },
-      { type: 'lamp', x: 280, y: 80, color: 'cyan' },
-      { type: 'poster', x: 50, y: 20 },
-      { type: 'speaker', x: 250, y: 300 },
-      { type: 'plant', x: 400, y: 200 },
-    ]),
-    currentlyPlaying: {
-      title: 'Midnight Code',
-      artist: 'Synthwave Dreams',
-      url: '/tracks/synthwave.mp3',
-      duration: 240
-    },
-    createdAt: Date.now() - 300000,
-    updatedAt: Date.now(),
+    trackId: 'midnight-code',
+    furniture: [
+      { type: 'album', x: 90, y: 70, trackId: 'midnight-code' },
+      { type: 'poster', x: 380, y: 72, color: '#22d3ee' },
+      { type: 'rug', x: 230, y: 300, scale: 1.3, color: '#d946ef' },
+      { type: 'desk', x: 120, y: 220, scale: 1.2 },
+      { type: 'tv', x: 200, y: 205 },
+      { type: 'lamp', x: 60, y: 200 },
+      { type: 'bed', x: 360, y: 300, scale: 1.1 },
+      { type: 'speaker', x: 270, y: 210 },
+      { type: 'plant', x: 420, y: 205 },
+    ],
+    greeting: "oh hey, welcome to the den 👾 mind the cables",
+    replies: ['lol same', 'this track slaps at 30,000 ft', "i'm debugging the wifi rn, don't tell anyone", 'drop by the chat later!', '👀 nice'],
   },
-  'loft-2': {
-    id: 'loft-2',
-    ownerId: 'demo-2',
-    ownerName: 'Marcus',
-    flightCode: 'AA123',
+  {
+    id: 'demo-marcus',
+    name: 'Marcus',
+    avatar: '👨‍🎓',
+    seat: '9B',
+    vibe: 'Cozy bookworm nook',
+    status: 'online',
     wallpaper: 'warm-brown',
     flooring: 'wood',
-    furniture: createFurniture([
-      { type: 'couch', x: 80, y: 180, scale: 1.1 },
-      { type: 'desk', x: 280, y: 120 },
-      { type: 'shelf', x: 400, y: 100 },
-      { type: 'plant', x: 100, y: 80 },
-      { type: 'plant', x: 350, y: 200 },
-      { type: 'lamp', x: 320, y: 150, color: 'warm' },
-      { type: 'rug', x: 150, y: 200 },
-    ]),
-    currentlyPlaying: {
-      title: 'Autumn Breeze',
-      artist: 'Indie Folk',
-      url: '/tracks/indie.mp3',
-      duration: 300
-    },
-    createdAt: Date.now() - 600000,
-    updatedAt: Date.now(),
+    trackId: 'autumn-breeze',
+    furniture: [
+      { type: 'painting', x: 110, y: 72 },
+      { type: 'album', x: 230, y: 70, trackId: 'autumn-breeze' },
+      { type: 'shelf', x: 60, y: 210, scale: 1.2 },
+      { type: 'shelf', x: 400, y: 210, scale: 1.2 },
+      { type: 'rug', x: 230, y: 300, scale: 1.4, color: '#b45309' },
+      { type: 'couch', x: 230, y: 300, scale: 1.1 },
+      { type: 'lamp', x: 140, y: 230 },
+      { type: 'plant', x: 330, y: 230 },
+      { type: 'plant', x: 60, y: 330 },
+    ],
+    greeting: "welcome in! grab a book, any book 📚",
+    replies: ["have you read anything good lately?", 'that reminds me of a novel I just finished', 'tea? ☕', 'the window seat is the best seat', 'haha fair'],
   },
-  'loft-3': {
-    id: 'loft-3',
-    ownerId: 'demo-3',
-    ownerName: 'Zara',
-    flightCode: 'AA123',
+  {
+    id: 'demo-zara',
+    name: 'Zara',
+    avatar: '👩‍🎨',
+    seat: '21F',
+    vibe: 'Minimalist art studio',
+    status: 'online',
     wallpaper: 'light-gray',
     flooring: 'marble',
-    furniture: createFurniture([
-      { type: 'bed', x: 60, y: 200 },
-      { type: 'painting', x: 150, y: 50 },
-      { type: 'poster', x: 250, y: 50 },
-      { type: 'lamp', x: 350, y: 150, color: 'soft-white' },
-    ]),
-    currentlyPlaying: {
-      title: 'Ambient Spaces',
-      artist: 'Minimalist Sounds',
-      url: '/tracks/ambient.mp3',
-      duration: 600
-    },
-    createdAt: Date.now() - 900000,
-    updatedAt: Date.now(),
+    trackId: 'ambient-spaces',
+    furniture: [
+      { type: 'painting', x: 150, y: 75, scale: 1.3 },
+      { type: 'poster', x: 320, y: 75, color: '#f472b6' },
+      { type: 'album', x: 410, y: 70, trackId: 'ambient-spaces' },
+      { type: 'bed', x: 340, y: 300 },
+      { type: 'lamp', x: 100, y: 240 },
+    ],
+    greeting: 'hi ✨ less is more, right?',
+    replies: ['mm, I like that', 'negative space is underrated', "I'm sketching the clouds outside", '🎨', 'come back later, the light changes'],
   },
-  'loft-4': {
-    id: 'loft-4',
-    ownerId: 'demo-4',
-    ownerName: 'Kai',
-    flightCode: 'AA123',
-    wallpaper: 'dark-neon',
-    flooring: 'rgb-lights',
-    furniture: createFurniture([
-      { type: 'desk', x: 100, y: 150, scale: 1.3 },
-      { type: 'tv', x: 300, y: 100 },
-      { type: 'poster', x: 50, y: 40 },
-      { type: 'lamp', x: 350, y: 180, color: 'neon-purple' },
-      { type: 'speaker', x: 200, y: 280 },
-    ]),
-    currentlyPlaying: {
-      title: 'Digital Dreams',
-      artist: 'Synthwave Vibes',
-      url: '/tracks/synthwave.mp3',
-      duration: 280
-    },
-    createdAt: Date.now() - 1200000,
-    updatedAt: Date.now(),
+  {
+    id: 'demo-kai',
+    name: 'Kai',
+    avatar: '🧑‍🚀',
+    seat: '3A',
+    vibe: 'RGB gamer battlestation',
+    status: 'online',
+    wallpaper: 'dark-purple',
+    flooring: 'neon-grid',
+    trackId: 'digital-dreams',
+    furniture: [
+      { type: 'poster', x: 70, y: 72, color: '#a855f7' },
+      { type: 'poster', x: 140, y: 72, color: '#22d3ee' },
+      { type: 'album', x: 380, y: 70, trackId: 'digital-dreams' },
+      { type: 'desk', x: 230, y: 210, scale: 1.4 },
+      { type: 'tv', x: 230, y: 185, scale: 0.9 },
+      { type: 'speaker', x: 150, y: 215 },
+      { type: 'speaker', x: 310, y: 215 },
+      { type: 'rug', x: 230, y: 310, scale: 1.2, color: '#22d3ee' },
+      { type: 'couch', x: 230, y: 320 },
+    ],
+    greeting: 'yo! gg for stopping by 🎮',
+    replies: ['one more game then sleep', 'the lag up here is brutal lol', 'you play anything?', 'RGB = +10 fps, everyone knows that', 'gg'],
   },
-  'loft-5': {
-    id: 'loft-5',
-    ownerId: 'demo-5',
-    ownerName: 'Nova',
-    flightCode: 'AA123',
+  {
+    id: 'demo-nova',
+    name: 'Nova',
+    avatar: '👩‍🎤',
+    seat: '17D',
+    vibe: 'Vinyl producer loft',
+    status: 'online',
     wallpaper: 'deep-blue',
-    flooring: 'vinyl',
-    furniture: createFurniture([
-      { type: 'desk', x: 150, y: 120 },
-      { type: 'speaker', x: 280, y: 180, scale: 1.2 },
-      { type: 'poster', x: 60, y: 60 },
-      { type: 'poster', x: 250, y: 60 },
-      { type: 'poster', x: 340, y: 60 },
-      { type: 'lamp', x: 400, y: 200 },
-    ]),
-    currentlyPlaying: {
-      title: 'Vinyl Groove',
-      artist: 'Chill Hop Beats',
-      url: '/tracks/chillhop.mp3',
-      duration: 220
-    },
-    createdAt: Date.now() - 1500000,
-    updatedAt: Date.now(),
+    flooring: 'carpet',
+    trackId: 'vinyl-groove',
+    furniture: [
+      { type: 'album', x: 80, y: 70, trackId: 'vinyl-groove' },
+      { type: 'album', x: 160, y: 70, trackId: 'retro-vibes' },
+      { type: 'album', x: 240, y: 70, trackId: 'midnight-code' },
+      { type: 'album', x: 320, y: 70, trackId: 'world-mix' },
+      { type: 'desk', x: 200, y: 220, scale: 1.2 },
+      { type: 'speaker', x: 110, y: 225, scale: 1.2 },
+      { type: 'speaker', x: 290, y: 225, scale: 1.2 },
+      { type: 'guitar', x: 400, y: 230 },
+      { type: 'rug', x: 200, y: 310, scale: 1.3, color: '#f59e0b' },
+      { type: 'plant', x: 420, y: 330 },
+    ],
+    greeting: 'welcome to the studio 🎧 tap any record on the wall',
+    replies: ['this one was sampled from the engine hum btw', 'what are you listening to?', 'tap a record, trust me', 'beats per mile 🎶', 'yesss'],
   },
-  'loft-6': {
-    id: 'loft-6',
-    ownerId: 'demo-6',
-    ownerName: 'River',
-    flightCode: 'AA123',
+  {
+    id: 'demo-river',
+    name: 'River',
+    avatar: '🧑‍🌾',
+    seat: '25A',
+    vibe: 'Indoor forest',
+    status: 'online',
     wallpaper: 'forest-green',
     flooring: 'moss',
-    furniture: createFurniture([
-      { type: 'bed', x: 80, y: 180 },
-      { type: 'plant', x: 50, y: 80 },
-      { type: 'plant', x: 150, y: 120 },
-      { type: 'plant', x: 300, y: 100 },
-      { type: 'painting', x: 200, y: 40 },
-      { type: 'lamp', x: 350, y: 200, color: 'warm-green' },
-    ]),
-    currentlyPlaying: {
-      title: 'Nature Sounds',
-      artist: 'Forest Ambient',
-      url: '/tracks/nature.mp3',
-      duration: 480
-    },
-    createdAt: Date.now() - 1800000,
-    updatedAt: Date.now(),
+    trackId: 'nature-sounds',
+    furniture: [
+      { type: 'painting', x: 230, y: 72 },
+      { type: 'album', x: 380, y: 70, trackId: 'nature-sounds' },
+      { type: 'plant', x: 50, y: 190, scale: 1.3 },
+      { type: 'plant', x: 120, y: 330 },
+      { type: 'plant', x: 410, y: 200, scale: 1.2 },
+      { type: 'plant', x: 300, y: 340 },
+      { type: 'bed', x: 230, y: 260 },
+      { type: 'lamp', x: 350, y: 250 },
+    ],
+    greeting: 'shh, listen... birds 🐦 (well, sort of)',
+    replies: ['breathe in, breathe out', "I brought 4 plants through security, don't ask", '🌿', 'nature finds a way, even at altitude', 'so peaceful'],
   },
-  'loft-7': {
-    id: 'loft-7',
-    ownerId: 'demo-7',
-    ownerName: 'Sienna',
-    flightCode: 'AA123',
+  {
+    id: 'demo-sienna',
+    name: 'Sienna',
+    avatar: '💃',
+    seat: '6E',
+    vibe: '80s retro lounge',
+    status: 'online',
     wallpaper: 'pastel-pink',
     flooring: 'retro-tile',
-    furniture: createFurniture([
-      { type: 'couch', x: 100, y: 200, scale: 1.1 },
-      { type: 'lamp', x: 80, y: 120, color: 'neon-pink' },
-      { type: 'poster', x: 200, y: 50 },
-      { type: 'poster', x: 280, y: 50 },
-      { type: 'speaker', x: 320, y: 180 },
-      { type: 'plant', x: 350, y: 240 },
-    ]),
-    currentlyPlaying: {
-      title: 'Retro Vibes',
-      artist: '80s Synthpop',
-      url: '/tracks/synthpop.mp3',
-      duration: 260
-    },
-    createdAt: Date.now() - 2100000,
-    updatedAt: Date.now(),
+    trackId: 'retro-vibes',
+    furniture: [
+      { type: 'poster', x: 90, y: 72, color: '#facc15' },
+      { type: 'poster', x: 160, y: 72, color: '#f472b6' },
+      { type: 'album', x: 360, y: 70, trackId: 'retro-vibes' },
+      { type: 'couch', x: 150, y: 270, scale: 1.1 },
+      { type: 'tv', x: 330, y: 215 },
+      { type: 'lamp', x: 60, y: 230 },
+      { type: 'speaker', x: 410, y: 300 },
+      { type: 'plant', x: 270, y: 330 },
+    ],
+    greeting: 'totally radical, come in! 🕺',
+    replies: ['like, totally', 'cassettes > streaming, fight me', '💖', 'dance break?', 'tubular!'],
   },
-  'loft-8': {
-    id: 'loft-8',
-    ownerId: 'demo-8',
-    ownerName: 'Atlas',
-    flightCode: 'AA123',
+  {
+    id: 'demo-atlas',
+    name: 'Atlas',
+    avatar: '👨‍✈️',
+    seat: '2A',
+    vibe: "Traveller's map room",
+    status: 'offline',
     wallpaper: 'ocean-blue',
-    flooring: 'compass',
-    furniture: createFurniture([
-      { type: 'desk', x: 120, y: 140 },
-      { type: 'painting', x: 60, y: 50 },
-      { type: 'poster', x: 200, y: 50 },
-      { type: 'poster', x: 300, y: 50 },
-      { type: 'shelf', x: 350, y: 180 },
-      { type: 'guitar', x: 400, y: 250 },
-    ]),
-    currentlyPlaying: {
-      title: 'World Music Mix',
-      artist: 'Global Sounds',
-      url: '/tracks/world.mp3',
-      duration: 360
-    },
-    createdAt: Date.now() - 2400000,
-    updatedAt: Date.now(),
+    flooring: 'tatami',
+    trackId: 'world-mix',
+    furniture: [
+      { type: 'painting', x: 100, y: 72 },
+      { type: 'poster', x: 190, y: 72, color: '#34d399' },
+      { type: 'album', x: 280, y: 70, trackId: 'world-mix' },
+      { type: 'desk', x: 130, y: 220 },
+      { type: 'shelf', x: 380, y: 210 },
+      { type: 'guitar', x: 300, y: 230 },
+      { type: 'rug', x: 230, y: 310, scale: 1.3, color: '#0ea5e9' },
+    ],
+    greeting: '(Atlas is napping — but his door is open)',
+    replies: ['zzz', '...', '😴'],
   },
-}
-
-export const demoTracks = [
-  { id: 'track-1', title: 'Midnight Code', artist: 'Synthwave Dreams', duration: 240 },
-  { id: 'track-2', title: 'Autumn Breeze', artist: 'Indie Folk', duration: 300 },
-  { id: 'track-3', title: 'Ambient Spaces', artist: 'Minimalist', duration: 600 },
-  { id: 'track-4', title: 'Digital Dreams', artist: 'Synthwave', duration: 280 },
-  { id: 'track-5', title: 'Vinyl Groove', artist: 'Chill Hop', duration: 220 },
-  { id: 'track-6', title: 'Nature Sounds', artist: 'Forest Ambient', duration: 480 },
 ]
 
-export const demoFlight = {
-  flightNumber: 'AA123',
-  departureAirport: 'SFO',
-  arrivalAirport: 'JFK',
-  departureTime: '09:00 AM',
-  arrivalTime: '05:30 PM',
-  date: new Date().toLocaleDateString(),
-  seatNumber: '12A',
-  passengerName: 'You',
-  airline: 'American Airlines'
+export const demoPassengers = (): Passenger[] =>
+  DEMO_PROFILES.map((p, i) => ({
+    id: p.id,
+    name: p.name,
+    avatar: p.avatar,
+    seat: p.seat,
+    status: p.status,
+    loftId: p.id,
+    vibe: p.vibe,
+    joinedAt: Date.now() - (i + 1) * 300000,
+  }))
+
+export const demoLofts = (flightCode: string): Record<string, Loft> =>
+  Object.fromEntries(
+    DEMO_PROFILES.map(p => {
+      const track = getPresetTrack(p.trackId)
+      return [
+        p.id,
+        {
+          id: p.id,
+          ownerId: p.id,
+          ownerName: p.name,
+          flightCode,
+          wallpaper: p.wallpaper,
+          flooring: p.flooring,
+          furniture: build(p.id, p.furniture),
+          currentlyPlaying: track ? { trackId: track.id, title: track.title, artist: track.artist } : null,
+          updatedAt: Date.now(),
+        } satisfies Loft,
+      ]
+    }),
+  )
+
+export const demoSeedMessages = (): ChatMessage[] => {
+  const now = Date.now()
+  const lines: [string, string, number][] = [
+    ['demo-kai', 'anyone else on the bad wifi seat 😂', 14],
+    ['demo-nova', 'my loft has new records up, come by 🎧', 11],
+    ['demo-marcus', "first time using this — it's like a tiny neighbourhood", 7],
+    ['demo-amara', 'pro tip: tap an album on someone’s wall to hear it', 4],
+  ]
+  return lines.map(([id, text, minsAgo], i) => {
+    const p = DEMO_PROFILES.find(d => d.id === id)!
+    return {
+      id: `seed-${i}`,
+      senderId: p.id,
+      senderName: p.name,
+      senderAvatar: p.avatar,
+      text,
+      timestamp: now - minsAgo * 60000,
+    }
+  })
 }
+
+export const getDemoProfile = (id: string) => DEMO_PROFILES.find(p => p.id === id)
+
+export const GLOBAL_CHAT_REPLIES = [
+  'welcome aboard! 👋',
+  'hiii',
+  'come visit my loft!',
+  'what are you listening to?',
+  'haha love that',
+  'same 😂',
+  'anyone know when the snacks come round?',
+]

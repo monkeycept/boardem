@@ -1,38 +1,51 @@
-import React from 'react'
 import { motion } from 'framer-motion'
+import { Home, MessageCircle, Paintbrush, Users } from 'lucide-react'
+import { Page } from '../../types'
 import { useUserStore } from '../../stores/userStore'
-import { Home, Zap, Users, MessageCircle } from 'lucide-react'
+import { useFlightStore } from '../../stores/flightStore'
+
+const NAV: { id: Page; label: string; icon: typeof Home }[] = [
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'loft', label: 'My Loft', icon: Paintbrush },
+  { id: 'passengers', label: 'Passengers', icon: Users },
+  { id: 'chat', label: 'Chat', icon: MessageCircle },
+]
 
 export default function BottomNav() {
-  const { currentPage, setCurrentPage } = useUserStore()
-
-  const navItems: Array<{ id: 'home' | 'loft' | 'passengers' | 'chat'; label: string; icon: React.ReactNode }> = [
-    { id: 'home', label: 'Home', icon: <Home className="w-5 h-5" /> },
-    { id: 'loft', label: 'My Loft', icon: <Zap className="w-5 h-5" /> },
-    { id: 'passengers', label: 'Passengers', icon: <Users className="w-5 h-5" /> },
-    { id: 'chat', label: 'Chat', icon: <MessageCircle className="w-5 h-5" /> },
-  ]
+  const { page, setPage, lastChatSeenAt } = useUserStore()
+  const { messages, myId } = useFlightStore()
+  const unread = page === 'chat' ? 0 : messages.filter(m => !m.loftId && m.senderId !== myId && m.timestamp > lastChatSeenAt).length
 
   return (
-    <div className="glass border-t border-slate-700/50 px-4 py-3 sticky bottom-0 z-20">
-      <div className="grid grid-cols-4 gap-2">
-        {navItems.map((item) => (
-          <motion.button
-            key={item.id}
-            onClick={() => setCurrentPage(item.id)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all ${
-              currentPage === item.id
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50'
-                : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/30'
-            }`}
-          >
-            {item.icon}
-            <span className="text-xs font-medium">{item.label}</span>
-          </motion.button>
-        ))}
+    <nav className="glass border-x-0 border-b-0 px-2 pt-1.5 pb-safe" aria-label="Main">
+      <div className="grid grid-cols-4 gap-1">
+        {NAV.map(item => {
+          const active = page === item.id
+          return (
+            <button
+              key={item.id}
+              onClick={() => setPage(item.id)}
+              aria-current={active ? 'page' : undefined}
+              className={`relative flex flex-col items-center gap-0.5 py-2 rounded-xl transition-colors ${
+                active ? 'text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {active && (
+                <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-xl bg-cyan-400/15 border border-cyan-400/30" transition={{ type: 'spring', damping: 26, stiffness: 320 }} />
+              )}
+              <span className="relative">
+                <item.icon className="w-5 h-5" />
+                {item.id === 'chat' && unread > 0 && (
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {unread > 9 ? '9+' : unread}
+                  </span>
+                )}
+              </span>
+              <span className="relative text-[11px] font-medium">{item.label}</span>
+            </button>
+          )
+        })}
       </div>
-    </div>
+    </nav>
   )
 }

@@ -1,23 +1,31 @@
-import React from 'react'
-import BottomNav from './BottomNav'
+import { AnimatePresence, motion } from 'framer-motion'
 import Header from './Header'
+import BottomNav from './BottomNav'
+import NowPlayingBar from '../common/NowPlayingBar'
+import { useUserStore } from '../../stores/userStore'
 
-interface LayoutProps {
-  children: React.ReactNode
-}
+export default function Layout({ children }: { children: React.ReactNode }) {
+  const page = useUserStore(s => s.page)
+  const scrolls = page === 'home' || page === 'passengers'
 
-export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
-      {/* Header */}
+    <div className="w-full h-full flex flex-col bg-sky-night">
       <Header />
-
-      {/* Main content */}
-      <div className="flex-1 overflow-y-auto">
-        {children}
-      </div>
-
-      {/* Bottom Navigation */}
+      <main className={`relative flex-1 min-h-0 ${scrolls ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={page}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18 }}
+            className={scrolls ? 'min-h-full' : 'h-full'}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </main>
+      <NowPlayingBar />
       <BottomNav />
     </div>
   )

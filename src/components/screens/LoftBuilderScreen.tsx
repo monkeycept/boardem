@@ -1,117 +1,168 @@
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useLoftStore } from '../../stores/loftStore'
-import { Palette, Save, Plus, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Check, Paintbrush, Save, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
-import LoftCanvas from '../loft/LoftCanvas'
-import FurnitureInventory from '../loft/FurnitureInventory'
+import { useLoftStore } from '../../stores/loftStore'
+import { allTracks, findTrack, useAudioStore } from '../../stores/audioStore'
+import { useFlightStore } from '../../stores/flightStore'
+import { useUserStore } from '../../stores/userStore'
+import { useMyMusic } from '../../hooks/useMyMusic'
+import { useRoomPresence } from '../../hooks/useRoomPresence'
+import { celebrate } from '../../lib/celebrate'
+import RoomStage from '../loft/RoomStage'
+import DecorateSheet from '../loft/DecorateSheet'
+import ItemToolbar from '../loft/ItemToolbar'
+
+const timeAgo = (ts: number | null) => {
+  if (!ts) return 'not saved yet'
+  const s = Math.round((Date.now() - ts) / 1000)
+  if (s < 10) return 'saved'
+  if (s < 60) return `saved ${s}s ago`
+  return `saved ${Math.round(s / 60)}m ago`
+}
 
 export default function LoftBuilderScreen() {
-  const { furniture, wallpaper, setWallpaper } = useLoftStore()
-  const [showInventory, setShowInventory] = useState(false)
+  const loft = useLoftStore()
+  const { uploads, currentTrackId, playing } = useAudioStore()
+  const toggleTrack = useMyMusic()
+  const { myId, sendMessage, demoDropBy, mode } = useFlightStore()
+  const { celebratedSave, markSaveCelebrated } = useUserStore()
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [reply, setReply] = useState('')
+  const [, tick] = useState(0)
 
-  const wallpapers = [
-    { id: 'dark-purple', label: 'Dark Purple', color: 'from-purple-900 to-slate-900' },
-    { id: 'dark-blue', label: 'Dark Blue', color: 'from-blue-900 to-slate-800' },
-    { id: 'dark-neon', label: 'Neon', color: 'from-slate-950 to-purple-950' },
-    { id: 'warm-brown', label: 'Warm Brown', color: 'from-amber-900 to-slate-800' },
-    { id: 'forest-green', label: 'Forest', color: 'from-green-900 to-slate-900' },
-    { id: 'light-gray', label: 'Minimalist', color: 'from-slate-700 to-slate-800' },
-    { id: 'pastel-pink', label: 'Pastel', color: 'from-rose-900 to-slate-800' },
-    { id: 'ocean-blue', label: 'Ocean', color: 'from-cyan-900 to-slate-900' },
-  ]
+  const visitors = useRoomPresence(myId, { includeOwner: false })
+  const selected = loft.furniture.find(f => f.id === loft.selectedId)
+  const playingId = playing ? currentTrackId : null
+  const tracks = allTracks(uploads)
+
+  // Everything autosaves; this just keeps the "saved Xs ago" label fresh.
+  useEffect(() => {
+    const t = window.setInterval(() => tick(n => n + 1), 15000)
+    return () => window.clearInterval(t)
+  }, [])
+
+  // Desktop shortcuts for the selected item.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const id = useLoftStore.getState().selectedId
+      if (!id || (e.target as HTMLElement)?.tagName === 'INPUT') return
+      const s = useLoftStore.getState()
+      if (e.key === 'Delete' || e.key === 'Backspace') s.removeItem(id)
+      else if (e.key.toLowerCase() === 'r') s.rotateItem(id)
+      else if (e.key === '+' || e.key === '=') s.resizeItem(id, 0.15)
+      else if (e.key === '-') s.resizeItem(id, -0.15)
+      else if (e.key === 'Escape') s.select(null)
+      else return
+      e.preventDefault()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const handleSave = () => {
-    const loftData = {
-      furniture,
-      wallpaper,
-      savedAt: new Date().toLocaleTimeString()
+    loft.markSaved()
+    loft.select(null)
+    toast.success(mode === 'live' ? 'Loft saved & shared with your flight' : 'Loft saved', { icon: '💾' })
+    if (!celebratedSave) {
+      celebrate()
+      markSaveCelebrated()
     }
-    localStorage.setItem('loft', JSON.stringify(loftData))
-    toast.success('Loft saved! 💾', { icon: '✨' })
+    demoDropBy()
+  }
+
+  const sendReply = () => {
+    if (!reply.trim()) return
+    sendMessage(reply, myId)
+    setReply('')
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Top Controls */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass border-b border-slate-700/50 p-4 flex items-center justify-between"
-      >
-        <div>
-          <h2 className="font-bold text-cyan-300">My Loft</h2>
-          <p className="text-xs text-slate-400">{furniture.length} items</p>
+    <div className="relative w-full h-full flex flex-col">
+      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-700/50">
+        <div className="min-w-0">
+          <h2 className="font-bold text-cyan-300 leading-tight">My Loft</h2>
+          <p className="text-xs text-slate-400 flex items-center gap-1 whitespace-nowrap overflow-hidden">
+            {loft.furniture.length} items · <Check className="w-3 h-3 text-emerald-400" /> {loft.savedAt ? timeAgo(loft.savedAt) : 'autosaving'}
+          </p>
         </div>
-
         <div className="flex gap-2">
-          <button
-            onClick={() => setShowInventory(!showInventory)}
-            className="btn-secondary flex items-center gap-1"
-          >
-            <Plus className="w-4 h-4" />
-            Add
+          <button onClick={() => setSheetOpen(true)} className="btn-secondary flex items-center gap-1.5 text-sm">
+            <Paintbrush className="w-4 h-4" /> Decorate
           </button>
-          <button
-            onClick={handleSave}
-            className="btn-primary flex items-center gap-1"
-          >
-            <Save className="w-4 h-4" />
-            Save
+          <button onClick={handleSave} className="btn-primary flex items-center gap-1.5 text-sm">
+            <Save className="w-4 h-4" /> Save
           </button>
         </div>
-      </motion.div>
-
-      {/* Wallpaper Selector */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="glass border-b border-slate-700/50 p-4"
-      >
-        <div className="flex items-center gap-2 mb-3">
-          <Palette className="w-4 h-4 text-cyan-400" />
-          <span className="text-sm font-medium text-slate-300">Wallpaper</span>
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          {wallpapers.map(wp => (
-            <button
-              key={wp.id}
-              onClick={() => setWallpaper(wp.id)}
-              className={`h-8 rounded-lg transition-all border-2 ${
-                wallpaper === wp.id
-                  ? 'border-cyan-400 ring-2 ring-cyan-500/50'
-                  : 'border-slate-600 hover:border-cyan-400/50'
-              } bg-gradient-to-br ${wp.color}`}
-              title={wp.label}
-            />
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Canvas */}
-      <div className="flex-1 overflow-hidden">
-        <LoftCanvas wallpaper={wallpaper} />
       </div>
 
-      {/* Inventory Sidebar */}
-      {showInventory && (
-        <motion.div
-          initial={{ x: 300, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: 300, opacity: 0 }}
-          className="absolute right-0 top-0 bottom-0 w-80 glass-dark border-l border-slate-700/50 overflow-y-auto z-40 shadow-2xl shadow-black/50"
-        >
-          <div className="p-4">
-            <button
-              onClick={() => setShowInventory(false)}
-              className="ml-auto block text-slate-400 hover:text-slate-200"
-            >
-              ✕
+      <AnimatePresence>
+        {visitors.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="px-4 py-2 bg-cyan-500/10 border-b border-cyan-500/20 flex items-center gap-2"
+          >
+            <span className="text-xs text-cyan-200 whitespace-nowrap">
+              {visitors.map(v => v.emoji).join('')} {visitors.length === 1 ? `${visitors[0].name} is visiting` : `${visitors.length} visitors`}
+            </span>
+            <input
+              value={reply}
+              onChange={e => setReply(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && sendReply()}
+              placeholder="Say hi…"
+              aria-label="Say something to your visitors"
+              className="input-base py-1 text-sm flex-1 min-w-0"
+            />
+            <button onClick={sendReply} className="p-1.5 rounded-lg bg-cyan-400 text-slate-950" aria-label="Send">
+              <Send className="w-4 h-4" />
             </button>
-          </div>
-          <FurnitureInventory />
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="relative flex-1 min-h-0 px-3 pt-3 pb-10">
+        <RoomStage
+          furniture={loft.furniture}
+          wallpaper={loft.wallpaper}
+          flooring={loft.flooring}
+          tracks={tracks}
+          playingTrackId={playingId}
+          editable
+          selectedId={loft.selectedId}
+          avatars={visitors}
+          onSelect={loft.select}
+          onMove={loft.moveItem}
+          onActivate={item => item.trackId && toggleTrack(item.trackId)}
+        />
+
+        <AnimatePresence>
+          {selected ? (
+            <ItemToolbar
+              key="toolbar"
+              item={selected}
+              trackTitle={findTrack(selected.trackId, uploads)?.title}
+              isPlaying={selected.trackId === playingId}
+              onRotate={() => loft.rotateItem(selected.id)}
+              onResize={d => loft.resizeItem(selected.id, d)}
+              onForward={() => loft.bringForward(selected.id)}
+              onDelete={() => loft.removeItem(selected.id)}
+              onTogglePlay={() => selected.trackId && toggleTrack(selected.trackId)}
+            />
+          ) : loft.furniture.length === 0 ? (
+            <motion.p key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-3 inset-x-0 text-center text-sm text-slate-300">
+              Your loft is empty — tap <span className="text-cyan-300 font-semibold">Decorate</span> to start
+            </motion.p>
+          ) : (
+            <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-3 inset-x-0 px-4 text-center text-xs text-slate-400 pointer-events-none truncate">
+              Drag to move · tap an item to rotate, resize or remove · double-tap an album to play
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <DecorateSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onToggleTrack={toggleTrack} />
     </div>
   )
 }

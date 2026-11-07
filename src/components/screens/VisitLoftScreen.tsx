@@ -1,148 +1,169 @@
-import React, { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import { ArrowLeft, Footprints, Pause, Play, Send, Volume2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useFlightStore } from '../../stores/flightStore'
 import { useUserStore } from '../../stores/userStore'
-import { ArrowLeft, Volume2, MessageCircle } from 'lucide-react'
+import { allTracks, findTrack, useAudioStore } from '../../stores/audioStore'
+import { useRoomPresence } from '../../hooks/useRoomPresence'
+import { celebrate } from '../../lib/celebrate'
+import { getPresetTrack } from '../../lib/tracks'
+import RoomStage from '../loft/RoomStage'
+import AlbumThumb from '../common/AlbumThumb'
 
 export default function VisitLoftScreen() {
-  const { visitingLoftId, lofts, setVisitingLoftId } = useFlightStore()
-  const { setCurrentPage } = useUserStore()
-  const [showChat, setShowChat] = useState(false)
-  const [chatText, setChatText] = useState('')
+  const { visitingLoftId, lofts, passengers, myPos, walkTo, exitVisit, sendMessage, messages, myId } = useFlightStore()
+  const { name, avatar, markVisited, setPage } = useUserStore()
+  const { uploads, currentTrackId, playing, play, stop } = useAudioStore()
+  const [text, setText] = useState('')
+  const resumeRef = useRef<string | null>(null)
 
-  if (!visitingLoftId || !lofts[visitingLoftId]) {
+  const loft = visitingLoftId ? lofts[visitingLoftId] : undefined
+  const owner = passengers.find(p => p.id === visitingLoftId)
+  const hostTrackId = loft?.currentlyPlaying?.trackId ?? null
+  const hostTrack = findTrack(hostTrackId, uploads) ?? (hostTrackId ? getPresetTrack(hostTrackId) : undefined)
+  const hostTrackPlayable = Boolean(hostTrackId && getPresetTrack(hostTrackId))
+
+  const me = useMemo(() => ({ id: myId, emoji: avatar, name: name || 'You', x: myPos.x, y: myPos.y, isMe: true }), [myId, avatar, name, myPos.x, myPos.y])
+  const avatars = useRoomPresence(visitingLoftId ?? '', { includeOwner: true, me })
+
+  // On arrival: celebrate first visits and put the host's music on. On leaving: restore your own.
+  useEffect(() => {
+    if (!visitingLoftId) return
+    const audio = useAudioStore.getState()
+    resumeRef.current = audio.playing ? audio.currentTrackId : null
+    if (markVisited(visitingLoftId)) celebrate('small')
+    const loftTrack = useFlightStore.getState().lofts[visitingLoftId]?.currentlyPlaying?.trackId
+    if (loftTrack && getPresetTrack(loftTrack)) audio.play(loftTrack)
+    else audio.stop()
+    return () => {
+      const a = useAudioStore.getState()
+      a.stop()
+      if (resumeRef.current) a.play(resumeRef.current)
+    }
+  }, [visitingLoftId, markVisited])
+
+  const roomLog = messages.filter(m => m.loftId === visitingLoftId).slice(-3)
+
+  if (!visitingLoftId || !loft) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <p className="text-slate-400">Loft not found</p>
+      <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-slate-300">This loft hasn’t been decorated yet.</p>
+        <button
+          className="btn-primary"
+          onClick={() => {
+            exitVisit()
+            setPage('passengers')
+          }}
+        >
+          Back to passengers
+        </button>
       </div>
     )
   }
 
-  const loft = lofts[visitingLoftId]
-
   const handleExit = () => {
-    setVisitingLoftId(null)
-    setCurrentPage('passengers')
+    exitVisit()
+    setPage('passengers')
   }
 
+  const send = () => {
+    if (!text.trim()) return
+    sendMessage(text, visitingLoftId)
+    setText('')
+  }
+
+  const playingId = playing ? currentTrackId : null
+
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass border-b border-slate-700/50 p-4 flex items-center justify-between"
-      >
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleExit}
-            className="btn-ghost flex items-center gap-1"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Exit
-          </button>
-        </div>
-
-        <div className="text-center">
-          <p className="text-lg font-bold text-cyan-300">{loft.ownerName}'s Loft</p>
-          <p className="text-xs text-slate-400">Visitor Mode</p>
-        </div>
-
-        <button
-          onClick={() => setShowChat(!showChat)}
-          className="btn-secondary flex items-center gap-1"
-        >
-          <MessageCircle className="w-4 h-4" />
-          Chat
+    <div className="w-full h-full flex flex-col bg-sky-night">
+      <header className="glass border-b border-slate-700/50 px-3 py-2.5 flex items-center gap-2">
+        <button onClick={handleExit} className="btn-ghost flex items-center gap-1 px-2" aria-label="Leave loft">
+          <ArrowLeft className="w-4 h-4" /> Leave
         </button>
-      </motion.div>
-
-      {/* Room view */}
-      <div className="flex-1 relative overflow-hidden">
-        <div className="w-full h-full flex items-center justify-center">
-          {/* Background matching the loft's wallpaper */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 to-slate-900/40" />
-
-          {/* Furniture preview */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center space-y-4"
-          >
-            <h3 className="text-2xl font-bold text-cyan-300 mb-4">
-              {loft.ownerName}'s Room
-            </h3>
-
-            {/* Furniture items display */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              {loft.furniture.map((item) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.1 }}
-                  className="glass rounded-lg p-4 text-4xl hover:scale-105 transition-transform"
-                >
-                  {item.type === 'bed' && '🛏️'}
-                  {item.type === 'couch' && '🛋️'}
-                  {item.type === 'desk' && '🪑'}
-                  {item.type === 'plant' && '🪴'}
-                  {item.type === 'lamp' && '💡'}
-                  {item.type === 'rug' && '📦'}
-                  {item.type === 'speaker' && '🔊'}
-                  {item.type === 'tv' && '📺'}
-                  {item.type === 'poster' && '🖼️'}
-                  {item.type === 'shelf' && '📚'}
-                  {item.type === 'painting' && '🎨'}
-                  {item.type === 'guitar' && '🎸'}
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Now Playing */}
-            {loft.currentlyPlaying && (
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="glass rounded-lg p-4 max-w-xs mx-auto"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Volume2 className="w-4 h-4 text-cyan-400 animate-pulse" />
-                  <span className="text-sm text-slate-400">Now Playing</span>
-                </div>
-                <p className="font-bold text-cyan-300">{loft.currentlyPlaying.title}</p>
-                <p className="text-sm text-slate-400">{loft.currentlyPlaying.artist}</p>
-              </motion.div>
-            )}
-          </motion.div>
+        <div className="flex-1 text-center min-w-0">
+          <p className="font-bold text-cyan-300 truncate">
+            {owner?.avatar} {loft.ownerName}’s Loft
+          </p>
+          <p className="text-[11px] text-slate-400 truncate">
+            {owner?.status === 'online' ? 'Home now' : 'Not home'} · {avatars.length - 1} {avatars.length - 1 === 1 ? 'person' : 'people'} here with you
+          </p>
         </div>
-      </div>
+        <div className="w-[72px]" />
+      </header>
 
-      {/* Chat panel */}
-      {showChat && (
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="glass border-t border-slate-700/50 p-4 space-y-3"
-        >
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder={`Chat with ${loft.ownerName}...`}
-              value={chatText}
-              onChange={(e) => setChatText(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  setChatText('')
-                }
-              }}
-              className="input-base flex-1"
-            />
-            <button className="btn-primary">Send</button>
+      {hostTrack && (
+        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="mx-3 mt-3 glass rounded-xl p-2 flex items-center gap-3">
+          <AlbumThumb track={hostTrack} size={36} spinning={playingId === hostTrackId} />
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] text-slate-400 flex items-center gap-1">
+              <Volume2 className="w-3 h-3 text-cyan-400" /> {hostTrackPlayable ? 'Playing in this loft' : 'Playing on their device'}
+            </p>
+            <p className="text-sm font-semibold text-slate-100 truncate">
+              {hostTrack.title} <span className="font-normal text-slate-400">· {hostTrack.artist}</span>
+            </p>
           </div>
+          {hostTrackPlayable && (
+            <button
+              onClick={() => (playingId === hostTrackId ? stop() : play(hostTrackId!))}
+              className="p-2 rounded-full bg-slate-700 text-cyan-300"
+              aria-label={playingId === hostTrackId ? 'Pause' : 'Play'}
+            >
+              {playingId === hostTrackId ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            </button>
+          )}
         </motion.div>
       )}
+
+      <div className="relative flex-1 min-h-0 px-3 pt-3 pb-10">
+        <RoomStage
+          furniture={loft.furniture}
+          wallpaper={loft.wallpaper}
+          flooring={loft.flooring}
+          tracks={allTracks(uploads)}
+          playingTrackId={playingId}
+          avatars={avatars}
+          onFloorTap={walkTo}
+          onActivate={item => {
+            if (item.type !== 'album' || !item.trackId) return
+            if (!getPresetTrack(item.trackId)) {
+              toast('That song lives on their device', { icon: '🎧' })
+              return
+            }
+            if (playingId === item.trackId) stop()
+            else play(item.trackId)
+          }}
+        />
+        <p className="absolute bottom-3 inset-x-0 text-center text-[11px] text-slate-400 pointer-events-none flex items-center justify-center gap-1">
+          <Footprints className="w-3 h-3" /> Tap the floor to walk · tap an album to listen
+        </p>
+      </div>
+
+      <div className="glass border-t border-slate-700/50 px-3 pt-2 pb-3 space-y-2">
+        {roomLog.length > 0 && (
+          <div className="space-y-0.5 text-xs" aria-live="polite">
+            {roomLog.map(m => (
+              <p key={m.id} className="truncate text-slate-300">
+                <span className="font-semibold text-cyan-300">{m.senderName}:</span> {m.text}
+              </p>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <input
+            value={text}
+            onChange={e => setText(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && send()}
+            placeholder={`Say something to ${loft.ownerName}…`}
+            aria-label="Message"
+            className="input-base flex-1"
+            maxLength={280}
+          />
+          <button onClick={send} className="btn-primary px-3" aria-label="Send">
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

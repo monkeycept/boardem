@@ -1,34 +1,46 @@
+export type FurnitureType =
+  | 'bed'
+  | 'couch'
+  | 'desk'
+  | 'plant'
+  | 'lamp'
+  | 'rug'
+  | 'speaker'
+  | 'tv'
+  | 'poster'
+  | 'shelf'
+  | 'painting'
+  | 'guitar'
+  | 'album'
+
 export interface Flight {
   flightNumber: string
+  airline: string
   departureAirport: string
   arrivalAirport: string
-  departureTime: string
-  arrivalTime: string
   date: string
   seatNumber: string
   passengerName: string
-  airline: string
-}
-
-export interface User {
-  id: string
-  name: string
-  avatar: string
-  status: 'online' | 'offline'
-  lastSeen?: number
-  currentLoft?: string
 }
 
 export interface FurnitureItem {
   id: string
-  type: 'bed' | 'couch' | 'desk' | 'plant' | 'lamp' | 'rug' | 'speaker' | 'tv' | 'poster' | 'shelf' | 'painting' | 'guitar'
+  type: FurnitureType
+  /** Centre of the item in room coordinates (see ROOM_W / ROOM_H). */
   x: number
   y: number
   rotation: number
   scale: number
   zIndex: number
   color?: string
-  imageUrl?: string
+  /** For album posters: which track the poster plays. */
+  trackId?: string
+}
+
+export interface NowPlaying {
+  trackId: string
+  title: string
+  artist: string
 }
 
 export interface Loft {
@@ -39,13 +51,7 @@ export interface Loft {
   furniture: FurnitureItem[]
   wallpaper: string
   flooring: string
-  currentlyPlaying?: {
-    title: string
-    artist: string
-    url: string
-    duration: number
-  }
-  createdAt: number
+  currentlyPlaying?: NowPlaying | null
   updatedAt: number
 }
 
@@ -56,6 +62,7 @@ export interface ChatMessage {
   senderAvatar: string
   text: string
   timestamp: number
+  /** Set when the message was said inside someone's loft (shown as a speech bubble there). */
   loftId?: string
   isSystemMessage?: boolean
 }
@@ -64,26 +71,29 @@ export interface Passenger {
   id: string
   name: string
   avatar: string
+  seat?: string
   status: 'online' | 'offline'
   loftId: string
-  currentlyVisiting?: string
+  /** Loft id this passenger is currently visiting, if any. */
+  visiting?: string | null
+  /** Avatar position inside the loft being visited (room coordinates). */
+  x?: number
+  y?: number
+  vibe?: string
   joinedAt: number
 }
 
-export interface Album {
+export interface Track {
   id: string
   title: string
   artist: string
-  imageUrl: string
-  audioUrl: string
-  duration: number
+  vibe: string
+  /** Two colours used for the generated album art. */
+  colors: [string, string]
+  /** 'preset' tracks are generated in the browser; 'upload' tracks are the user's own files. */
+  source: 'preset' | 'upload'
+  url?: string
 }
 
-export interface VisitorData {
-  id: string
-  name: string
-  avatar: string
-  x: number
-  y: number
-  visiting: string
-}
+export type Page = 'home' | 'loft' | 'passengers' | 'chat'
+export type SyncMode = 'demo' | 'live'
