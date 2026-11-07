@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Wada combination 155: Deep Indigo, Benzol Green, Jasper Red -->
+  <rect width="100" height="100" rx="24" fill="#051230"/>
+  <circle cx="68" cy="34" r="20" fill="#eb5324"/>
+  <path d="M18 49 L84 20 L47 58 Z" fill="#f5ecc2"/>
+  <path d="M47 58 L84 20 L60 81 Z" fill="#00978d"/>
+  <path d="M47 58 L44 75 L53 64 Z" fill="#046c65"/>
+</svg>
