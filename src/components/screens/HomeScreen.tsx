@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { LogOut, MessageCircle, Music2, Paintbrush, Plane, Users } from 'lucide-react'
 import { useFlightStore } from '../../stores/flightStore'
@@ -11,6 +12,13 @@ export default function HomeScreen() {
   const furnitureCount = useLoftStore(s => s.furniture.length)
   const nowPlaying = useLoftStore(s => s.nowPlaying)
   const stopMusic = useAudioStore(s => s.stop)
+  // Two-tap confirm in the page itself (some in-app browsers block window.confirm).
+  const [confirmLeave, setConfirmLeave] = useState(false)
+  useEffect(() => {
+    if (!confirmLeave) return
+    const t = window.setTimeout(() => setConfirmLeave(false), 4000)
+    return () => window.clearTimeout(t)
+  }, [confirmLeave])
   if (!flight) return null
 
   const others = passengers.filter(p => p.id !== myId)
@@ -110,14 +118,18 @@ export default function HomeScreen() {
 
       <button
         onClick={() => {
-          if (window.confirm('Leave this flight? Your loft stays saved for next time.')) {
-            stopMusic()
-            leave()
+          if (!confirmLeave) {
+            setConfirmLeave(true)
+            return
           }
+          stopMusic()
+          leave()
         }}
-        className="w-full py-3 text-sm text-slate-400 hover:text-rose-300 flex items-center justify-center gap-2"
+        className={`w-full py-3 text-sm flex items-center justify-center gap-2 rounded-xl transition-colors ${
+          confirmLeave ? 'bg-rose-500/15 text-rose-300' : 'text-slate-400 hover:text-rose-300'
+        }`}
       >
-        <LogOut className="w-4 h-4" /> Leave flight
+        <LogOut className="w-4 h-4" /> {confirmLeave ? 'Tap again to leave — your loft stays saved' : 'Leave flight'}
       </button>
     </div>
   )

@@ -19,6 +19,7 @@
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     background: #0b1020;
+    color-scheme: dark;
   }
 
   body {
